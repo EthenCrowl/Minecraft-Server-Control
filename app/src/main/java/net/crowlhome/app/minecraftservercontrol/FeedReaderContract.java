@@ -19,11 +19,27 @@ public final class FeedReaderContract {
         public static final String COLUMN_SERVER_NAME = "name";
         public static final String COLUMN_SERVER_MOTD = "motd";
         public static final String COLUMN_SERVER_HOSTNAME = "hostname";
-        public static final int COLUMN_SERVER_QUERY_PORT = 25565;
-        public static final int COLUMN_SERVER_RCON_PORT = 25575;
-        public static final String COLUMN_SERVER_ICON = "# image location #";
-        public static final int COLUMN_CURRENT_PLAYER_COUNT = 0;
-        public static final int COLUMN_MAX_PLAYER_COUNT = 10;
-        public static final String[] COLUMN_CURRENT_PLAYER_LIST = new String[1];
+        public static final String COLUMN_SERVER_QUERY_PORT = "query_port";
+        public static final String COLUMN_SERVER_RCON_PORT = "rcon_port";
+        public static final String COLUMN_SERVER_ICON = "server_icon";
+        public static final String COLUMN_CURRENT_PLAYER_COUNT = "current_player_count";
+        public static final String COLUMN_MAX_PLAYER_COUNT = "max_player_count";
+        public static final String COLUMN_CURRENT_PLAYER_LIST = "current_player_list";
     }
+
+    private static final String SQL_CREATE_ENTRIES =
+            "CREATE TABLE " + FeedEntry.TABLE_NAME + " (" +
+                    FeedEntry._ID + " INTEGER PRIMARY KEY," +
+                    FeedEntry.COLUMN_SERVER_NAME + " TEXT," +
+                    FeedEntry.COLUMN_SERVER_MOTD + " TEXT," +
+                    FeedEntry.COLUMN_SERVER_HOSTNAME + " TEXT," +
+                    FeedEntry.COLUMN_SERVER_QUERY_PORT + " INT," +
+                    FeedEntry.COLUMN_SERVER_RCON_PORT + " INT," +
+                    FeedEntry.COLUMN_SERVER_ICON + " TEXT," +
+                    FeedEntry.COLUMN_CURRENT_PLAYER_COUNT + " INT," +
+                    FeedEntry.COLUMN_MAX_PLAYER_COUNT + " INT," +
+                    FeedEntry.COLUMN_CURRENT_PLAYER_LIST + " ARRAY)";
+
+    private static final String SQL_DELETE_ENTRIES =
+            "DROP TABLE IF EXISTS " + FeedEntry.TABLE_NAME;
 }
