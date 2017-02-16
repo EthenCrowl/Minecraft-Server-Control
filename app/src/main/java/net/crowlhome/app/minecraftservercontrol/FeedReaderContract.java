@@ -29,16 +29,16 @@ public final class FeedReaderContract {
 
     private static final String SQL_CREATE_ENTRIES =
             "CREATE TABLE " + FeedEntry.TABLE_NAME + " (" +
-                    FeedEntry._ID + " INTEGER PRIMARY KEY," +
-                    FeedEntry.COLUMN_SERVER_NAME + " TEXT," +
+                    FeedEntry._ID + " INTEGER PRIMARY KEY NOT NULL," +
+                    FeedEntry.COLUMN_SERVER_NAME + " TEXT NOT NULL," +
                     FeedEntry.COLUMN_SERVER_MOTD + " TEXT," +
-                    FeedEntry.COLUMN_SERVER_HOSTNAME + " TEXT," +
-                    FeedEntry.COLUMN_SERVER_QUERY_PORT + " INT," +
-                    FeedEntry.COLUMN_SERVER_RCON_PORT + " INT," +
+                    FeedEntry.COLUMN_SERVER_HOSTNAME + " TEXT NOT NULL," +
+                    FeedEntry.COLUMN_SERVER_QUERY_PORT + " INTEGER NOT NULL," +
+                    FeedEntry.COLUMN_SERVER_RCON_PORT + " INTEGER NOT NULL," +
                     FeedEntry.COLUMN_SERVER_ICON + " TEXT," +
-                    FeedEntry.COLUMN_CURRENT_PLAYER_COUNT + " INT," +
-                    FeedEntry.COLUMN_MAX_PLAYER_COUNT + " INT," +
-                    FeedEntry.COLUMN_CURRENT_PLAYER_LIST + " ARRAY)";
+                    FeedEntry.COLUMN_CURRENT_PLAYER_COUNT + " INTEGER," +
+                    FeedEntry.COLUMN_MAX_PLAYER_COUNT + " INTEGER," +
+                    FeedEntry.COLUMN_CURRENT_PLAYER_LIST + " BLOB)";
 
     private static final String SQL_DELETE_ENTRIES =
             "DROP TABLE IF EXISTS " + FeedEntry.TABLE_NAME;
