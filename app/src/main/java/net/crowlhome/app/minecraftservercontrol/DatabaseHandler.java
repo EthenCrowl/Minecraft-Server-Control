@@ -1,5 +1,6 @@
 package net.crowlhome.app.minecraftservercontrol;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -43,8 +44,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 KEY_ID + " INTEGER PRIMARY KEY," +
                 KEY_SERVER_NAME + " TEXT," +
                 KEY_SERVER_ADDRESS + " TEXT," +
-                KEY_SERVER_PORT_RCON + " INTEGER," +
                 KEY_SERVER_PORT_QUERY + " INTEGER," +
+                KEY_SERVER_PORT_RCON + " INTEGER," +
                 KEY_SERVER_RCON_PASS + " TEXT," +
                 KEY_SERVER_PLAYERS_CONNECTED + " INTEGER," +
                 KEY_SERVER_PLAYERS_MAX + " INTEGER," +
@@ -63,5 +64,18 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public void addServer() {}
+    public void addServer(Server server) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(KEY_SERVER_NAME, server.get_serverName());
+        values.put(KEY_SERVER_ADDRESS, server.get_serverAddress());
+        values.put(KEY_SERVER_PORT_QUERY, server.get_queryPort());
+        values.put(KEY_SERVER_PORT_RCON, server.get_rconPort());
+        values.put(KEY_SERVER_RCON_PASS, server.get_rconPass());
+
+        // Insert Row
+        db.insert(TABLE_SERVER_LIST, null, values);
+        db.close(); // Close database connection
+    }
 }
