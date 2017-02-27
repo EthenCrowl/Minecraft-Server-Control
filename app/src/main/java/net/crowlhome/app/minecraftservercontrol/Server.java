@@ -11,8 +11,8 @@ public class Server {
     private int _id;
     private String _serverName;
     private String _serverAddress;
-    private int _rconPort;
     private int _queryPort;
+    private int _rconPort;
     private String _rconPass;
     private int _connectedPlayers;
     private int _maxPlayers;
@@ -30,6 +30,18 @@ public class Server {
         this._queryPort = queryPort;
         this._rconPort = rconPort;
         this._rconPass = rconPass;
+    }
+
+    public Server(int _id, String _serverName, String _serverAddress, int _queryPort, int _rconPort, String _rconPass, int _connectedPlayers, int _maxPlayers, int _ping) {
+        this._id = _id;
+        this._serverName = _serverName;
+        this._serverAddress = _serverAddress;
+        this._queryPort = _queryPort;
+        this._rconPort = _rconPort;
+        this._rconPass = _rconPass;
+        this._connectedPlayers = _connectedPlayers;
+        this._maxPlayers = _maxPlayers;
+        this._ping = _ping;
     }
 
     public int get_id() {

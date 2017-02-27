@@ -2,8 +2,13 @@ package net.crowlhome.app.minecraftservercontrol;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.media.session.PlaybackState;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by ethen on 2/26/17.
@@ -26,8 +31,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String KEY_ID = "server_id";
     private static final String KEY_SERVER_NAME = "server_name";
     private static final String KEY_SERVER_ADDRESS = "server_address";
-    private static final String KEY_SERVER_PORT_RCON = "rcon_port";
     private static final String KEY_SERVER_PORT_QUERY = "query_port";
+    private static final String KEY_SERVER_PORT_RCON = "rcon_port";
     private static final String KEY_SERVER_RCON_PASS = "rcon_password";
     private static final String KEY_SERVER_PLAYERS_CONNECTED = "connected_players";
     private static final String KEY_SERVER_PLAYERS_MAX = "max_players";
@@ -77,5 +82,43 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         // Insert Row
         db.insert(TABLE_SERVER_LIST, null, values);
         db.close(); // Close database connection
+    }
+
+    public Server getServer(int id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(TABLE_SERVER_LIST, new String[] { KEY_ID,
+        KEY_SERVER_NAME, KEY_SERVER_ADDRESS, KEY_SERVER_PORT_QUERY, KEY_SERVER_PORT_RCON,
+        KEY_SERVER_RCON_PASS, KEY_SERVER_PLAYERS_CONNECTED, KEY_SERVER_PLAYERS_MAX, KEY_SERVER_PING}, KEY_ID + "=?",
+                new String[] { String.valueOf(id) }, null, null, null, null);
+        if (cursor != null)
+            cursor.moveToFirst();
+
+        Server server = new Server(cursor.getInt(0), cursor.getString(1), cursor.getString(2),
+                cursor.getInt(3), cursor.getInt(4), cursor.getString(5), cursor.getInt(6),
+                cursor.getInt(7), cursor.getInt(8));
+
+        return server;
+    }
+
+    public List<Server> getAllServers() {
+        List<Server> serverList = new ArrayList<Server>();
+        // Selet All Query
+        String selectQuery = "SELECT * FROM " + TABLE_SERVER_LIST;
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        // loop through all rows and add them to the list
+        if (cursor.moveToFirst()) {
+            do {
+                Server server = new Server(cursor.getInt(0), cursor.getString(1), cursor.getString(2),
+                        cursor.getInt(3), cursor.getInt(4), cursor.getString(5), cursor.getInt(6),
+                        cursor.getInt(7), cursor.getInt(8));
+                serverList.add(server);
+            } while (cursor.moveToNext());
+        }
+
+        return serverList;
     }
 }
