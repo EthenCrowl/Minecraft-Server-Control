@@ -2,6 +2,7 @@ package net.crowlhome.app.minecraftservercontrol;
 
 import android.content.Intent;
 import android.database.DataSetObserver;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -19,7 +20,9 @@ import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 
+import java.io.IOException;
 import java.lang.reflect.Array;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +30,7 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private DatabaseHandler db;
+    private String[] onlinePlayers;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,5 +127,33 @@ public class MainActivity extends AppCompatActivity
 
         list.setAdapter(adapter);
 
+    }
+
+    class QueryServer extends AsyncTask<Server, Void, Void> {
+
+        private Exception exception;
+
+
+        protected Void doInBackground(Server... server) {
+            String serverAddress = server[0].get_serverAddress();
+            int queryPort = server[0].get_queryPort();
+            int serverPort = server[0].get_serverPort();
+
+            InetSocketAddress queryAddress = new InetSocketAddress(serverAddress, queryPort);
+            InetSocketAddress address = new InetSocketAddress(serverAddress, serverPort);
+
+            Query query = new Query(queryAddress, address);
+            String[] onlinePlayers = new String[1];
+            onlinePlayers[0] = "Empty";
+
+
+            try {
+                query.sendQuery();
+                onlinePlayers = query.getOnlineUsernames();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
     }
 }

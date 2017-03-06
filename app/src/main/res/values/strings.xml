@@ -9,6 +9,7 @@
 
     <string name="server_name_prompt">Server Name:</string>
     <string name="server_address_prompt">IP/Hostname:</string>
+    <string name="server_port_prompt">Server Port</string>
     <string name="server_query_port_prompt">Query Port:</string>
     <string name="server_rcon_port_prompt">Rcon Port:</string>
     <string name="server_rcon_password_prompt">Rcon Password:</string>

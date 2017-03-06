@@ -11,6 +11,7 @@ public class Server {
     private int _id;
     private String _serverName;
     private String _serverAddress;
+    private int _serverPort;
     private int _queryPort;
     private int _rconPort;
     private String _rconPass;
@@ -24,18 +25,20 @@ public class Server {
     }
 
     // constructor
-    public Server(String serverName, String serverAddress, int queryPort, int rconPort, String rconPass) {
+    public Server(String serverName, String serverAddress, int serverPort, int queryPort, int rconPort, String rconPass) {
         this._serverName = serverName;
         this._serverAddress = serverAddress;
+        this._serverPort = serverPort;
         this._queryPort = queryPort;
         this._rconPort = rconPort;
         this._rconPass = rconPass;
     }
 
-    public Server(int _id, String _serverName, String _serverAddress, int _queryPort, int _rconPort, String _rconPass, int _connectedPlayers, int _maxPlayers, int _ping) {
+    public Server(int _id, String _serverName, String _serverAddress, int serverPort, int _queryPort, int _rconPort, String _rconPass, int _connectedPlayers, int _maxPlayers, int _ping) {
         this._id = _id;
         this._serverName = _serverName;
         this._serverAddress = _serverAddress;
+        this._serverPort = serverPort;
         this._queryPort = _queryPort;
         this._rconPort = _rconPort;
         this._rconPass = _rconPass;
@@ -66,6 +69,14 @@ public class Server {
 
     public void set_serverAddress(String _serverAddress) {
         this._serverAddress = _serverAddress;
+    }
+
+    public int get_serverPort() {
+        return _serverPort;
+    }
+
+    public void set_serverPort(int _serverPort) {
+        this._serverPort = _serverPort;
     }
 
     public int get_rconPort() {

@@ -19,7 +19,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     // All Static variables
     // Database Version
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     // Database name
     private static final String DATABASE_NAME = "mainDatabase";
@@ -31,6 +31,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String KEY_ID = "server_id";
     private static final String KEY_SERVER_NAME = "server_name";
     private static final String KEY_SERVER_ADDRESS = "server_address";
+    private static final String KEY_SERVER_PORT_GAME = "server_port";
     private static final String KEY_SERVER_PORT_QUERY = "query_port";
     private static final String KEY_SERVER_PORT_RCON = "rcon_port";
     private static final String KEY_SERVER_RCON_PASS = "rcon_password";
@@ -49,6 +50,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 KEY_ID + " INTEGER PRIMARY KEY," +
                 KEY_SERVER_NAME + " TEXT," +
                 KEY_SERVER_ADDRESS + " TEXT," +
+                KEY_SERVER_PORT_GAME + " INTEGER," +
                 KEY_SERVER_PORT_QUERY + " INTEGER," +
                 KEY_SERVER_PORT_RCON + " INTEGER," +
                 KEY_SERVER_RCON_PASS + " TEXT," +
@@ -75,6 +77,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(KEY_SERVER_NAME, server.get_serverName());
         values.put(KEY_SERVER_ADDRESS, server.get_serverAddress());
+        values.put(KEY_SERVER_PORT_GAME, server.get_serverPort());
         values.put(KEY_SERVER_PORT_QUERY, server.get_queryPort());
         values.put(KEY_SERVER_PORT_RCON, server.get_rconPort());
         values.put(KEY_SERVER_RCON_PASS, server.get_rconPass());
@@ -88,15 +91,15 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
 
         Cursor cursor = db.query(TABLE_SERVER_LIST, new String[] { KEY_ID,
-        KEY_SERVER_NAME, KEY_SERVER_ADDRESS, KEY_SERVER_PORT_QUERY, KEY_SERVER_PORT_RCON,
+        KEY_SERVER_NAME, KEY_SERVER_ADDRESS, KEY_SERVER_PORT_GAME, KEY_SERVER_PORT_QUERY, KEY_SERVER_PORT_RCON,
         KEY_SERVER_RCON_PASS, KEY_SERVER_PLAYERS_CONNECTED, KEY_SERVER_PLAYERS_MAX, KEY_SERVER_PING}, KEY_ID + "=?",
                 new String[] { String.valueOf(id) }, null, null, null, null);
         if (cursor != null)
             cursor.moveToFirst();
 
         Server server = new Server(cursor.getInt(0), cursor.getString(1), cursor.getString(2),
-                cursor.getInt(3), cursor.getInt(4), cursor.getString(5), cursor.getInt(6),
-                cursor.getInt(7), cursor.getInt(8));
+                cursor.getInt(3), cursor.getInt(4), cursor.getInt(5), cursor.getString(6), cursor.getInt(7),
+                cursor.getInt(8), cursor.getInt(9));
 
         return server;
     }
@@ -113,8 +116,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
             do {
                 Server server = new Server(cursor.getInt(0), cursor.getString(1), cursor.getString(2),
-                        cursor.getInt(3), cursor.getInt(4), cursor.getString(5), cursor.getInt(6),
-                        cursor.getInt(7), cursor.getInt(8));
+                        cursor.getInt(3), cursor.getInt(4), cursor.getInt(5), cursor.getString(6), cursor.getInt(7),
+                        cursor.getInt(8), cursor.getInt(9));
                 serverList.add(server);
             } while (cursor.moveToNext());
         }
@@ -128,6 +131,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(KEY_SERVER_NAME, server.get_serverName());
         values.put(KEY_SERVER_ADDRESS, server.get_serverAddress());
+        values.put(KEY_SERVER_PORT_GAME, server.get_serverPort());
         values.put(KEY_SERVER_PORT_QUERY, server.get_queryPort());
         values.put(KEY_SERVER_PORT_RCON, server.get_rconPort());
         values.put(KEY_SERVER_RCON_PASS, server.get_rconPass());
