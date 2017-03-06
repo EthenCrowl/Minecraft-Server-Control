@@ -121,4 +121,29 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         return serverList;
     }
+
+    public int updateServer(Server server) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(KEY_SERVER_NAME, server.get_serverName());
+        values.put(KEY_SERVER_ADDRESS, server.get_serverAddress());
+        values.put(KEY_SERVER_PORT_QUERY, server.get_queryPort());
+        values.put(KEY_SERVER_PORT_RCON, server.get_rconPort());
+        values.put(KEY_SERVER_RCON_PASS, server.get_rconPass());
+        values.put(KEY_SERVER_PLAYERS_CONNECTED, server.get_connectedPlayers());
+        values.put(KEY_SERVER_PLAYERS_MAX, server.get_maxPlayers());
+        values.put(KEY_SERVER_PING, server.get_ping());
+
+        // updating row
+        return db.update(TABLE_SERVER_LIST, values, KEY_ID + " = ?",
+                new String[] { String.valueOf(server.get_id()) });
+    }
+
+    public void deleteServer(Server server) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_SERVER_LIST, KEY_ID + " = ?",
+                new String[] { String.valueOf(server.get_id()) });
+        db.close();
+    }
 }
