@@ -1,6 +1,7 @@
 package net.crowlhome.app.minecraftservercontrol;
 
 import android.content.Context;
+import android.renderscript.ScriptIntrinsicYuvToRGB;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,8 +32,12 @@ public class ServerAdapter extends ArrayAdapter<Server> {
 
         TextView name = (TextView) convertView.findViewById(R.id.server_item_name);
         TextView address = (TextView) convertView.findViewById(R.id.server_item_address);
+        TextView current_players = (TextView) convertView.findViewById(R.id.server_item_current_players);
+        TextView max_players = (TextView) convertView.findViewById(R.id.server_item_max_players);
         name.setText(server.get_serverName());
         address.setText(server.get_serverAddress());
+        current_players.setText(Integer.toString(server.get_connectedPlayers()));
+        max_players.setText(Integer.toString(server.get_maxPlayers()));
 
         return convertView;
     }

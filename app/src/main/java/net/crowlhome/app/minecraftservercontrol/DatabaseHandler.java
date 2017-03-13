@@ -19,7 +19,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     // All Static variables
     // Database Version
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
 
     // Database name
     private static final String DATABASE_NAME = "mainDatabase";
@@ -37,7 +37,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String KEY_SERVER_RCON_PASS = "rcon_password";
     private static final String KEY_SERVER_PLAYERS_CONNECTED = "connected_players";
     private static final String KEY_SERVER_PLAYERS_MAX = "max_players";
-    private static final String KEY_SERVER_PING = "server_ping";
+    private static final String KEY_SERVER_CURRENT_PLAYER_NAMES = "current_player_names";
 
     public DatabaseHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -56,7 +56,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 KEY_SERVER_RCON_PASS + " TEXT," +
                 KEY_SERVER_PLAYERS_CONNECTED + " INTEGER," +
                 KEY_SERVER_PLAYERS_MAX + " INTEGER," +
-                KEY_SERVER_PING + " INTEGER" + ")";
+                KEY_SERVER_CURRENT_PLAYER_NAMES + " TEXT)";
         db.execSQL(CREATE_SERVER_LIST_TABLE);
 
     }
@@ -92,15 +92,16 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         Cursor cursor = db.query(TABLE_SERVER_LIST, new String[] { KEY_ID,
         KEY_SERVER_NAME, KEY_SERVER_ADDRESS, KEY_SERVER_PORT_GAME, KEY_SERVER_PORT_QUERY, KEY_SERVER_PORT_RCON,
-        KEY_SERVER_RCON_PASS, KEY_SERVER_PLAYERS_CONNECTED, KEY_SERVER_PLAYERS_MAX, KEY_SERVER_PING}, KEY_ID + "=?",
+        KEY_SERVER_RCON_PASS, KEY_SERVER_PLAYERS_CONNECTED, KEY_SERVER_PLAYERS_MAX, KEY_SERVER_CURRENT_PLAYER_NAMES}, KEY_ID + "=?",
                 new String[] { String.valueOf(id) }, null, null, null, null);
         if (cursor != null)
             cursor.moveToFirst();
 
         Server server = new Server(cursor.getInt(0), cursor.getString(1), cursor.getString(2),
                 cursor.getInt(3), cursor.getInt(4), cursor.getInt(5), cursor.getString(6), cursor.getInt(7),
-                cursor.getInt(8), cursor.getInt(9));
+                cursor.getInt(8), cursor.getString(9));
 
+        cursor.close();
         return server;
     }
 
@@ -117,11 +118,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             do {
                 Server server = new Server(cursor.getInt(0), cursor.getString(1), cursor.getString(2),
                         cursor.getInt(3), cursor.getInt(4), cursor.getInt(5), cursor.getString(6), cursor.getInt(7),
-                        cursor.getInt(8), cursor.getInt(9));
+                        cursor.getInt(8), cursor.getString(9));
                 serverList.add(server);
             } while (cursor.moveToNext());
         }
 
+        cursor.close();
         return serverList;
     }
 
@@ -137,7 +139,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(KEY_SERVER_RCON_PASS, server.get_rconPass());
         values.put(KEY_SERVER_PLAYERS_CONNECTED, server.get_connectedPlayers());
         values.put(KEY_SERVER_PLAYERS_MAX, server.get_maxPlayers());
-        values.put(KEY_SERVER_PING, server.get_ping());
+        values.put(KEY_SERVER_CURRENT_PLAYER_NAMES, server.get_currentPlayerNames());
 
         // updating row
         return db.update(TABLE_SERVER_LIST, values, KEY_ID + " = ?",

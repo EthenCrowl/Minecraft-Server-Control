@@ -6,4 +6,14 @@
         android:orderInCategory="100"
         android:title="@string/action_settings"
         app:showAsAction="never"/>
+    <item
+        android:id="@+id/action_query_server_button"
+        android:title="Query Servers"
+        android:orderInCategory="1"/>
+
+    <item
+        android:id="@+id/action_refresh_server_list_button"
+        android:title="Refresh List"
+        android:orderInCategory="2"/>
+
 </menu>

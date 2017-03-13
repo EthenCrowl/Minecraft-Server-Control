@@ -1,5 +1,7 @@
 package net.crowlhome.app.minecraftservercontrol;
 
+import android.app.LauncherActivity;
+import android.content.ClipData;
 import android.content.Intent;
 import android.database.DataSetObserver;
 import android.os.AsyncTask;
@@ -17,6 +19,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 
@@ -24,13 +27,18 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, QueryServerResponse {
 
+    QueryServer queryServer = new QueryServer();
     private DatabaseHandler db;
     private String[] onlinePlayers;
+    private ListView list;
+    private ServerAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +48,7 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         db = new DatabaseHandler(this);
+        queryServer.delegate = this;
         getAllServers();
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -50,6 +59,7 @@ public class MainActivity extends AppCompatActivity
                 startActivity(i);
             }
         });
+
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -80,17 +90,23 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.action_query_server_button:
+                List<Server> servers = db.getAllServers();
+                for (Server server : servers) {
+                    queryServer.execute(server);
+                }
+                return true;
+            case R.id.action_refresh_server_list_button:
+                List<Server> servers1 = db.getAllServers();
+                mAdapter.clear();
+                mAdapter.addAll(servers1);
+                mAdapter.notifyDataSetChanged();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
-
-        return super.onOptionsItemSelected(item);
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
@@ -121,39 +137,27 @@ public class MainActivity extends AppCompatActivity
     private void getAllServers() {
         List<Server> servers = db.getAllServers();
 
-        ServerAdapter adapter = new ServerAdapter(this, (ArrayList<Server>) servers);
+        mAdapter = new ServerAdapter(this, (ArrayList<Server>) servers);
 
-        ListView list = (ListView) findViewById(R.id.server_list);
+        list = (ListView) findViewById(R.id.server_list);
 
-        list.setAdapter(adapter);
+        list.setAdapter(mAdapter);
 
     }
 
-    class QueryServer extends AsyncTask<Server, Void, Void> {
+    public void queryAllServers() {
+        List<Server> servers = db.getAllServers();
 
-        private Exception exception;
-
-
-        protected Void doInBackground(Server... server) {
-            String serverAddress = server[0].get_serverAddress();
-            int queryPort = server[0].get_queryPort();
-            int serverPort = server[0].get_serverPort();
-
-            InetSocketAddress queryAddress = new InetSocketAddress(serverAddress, queryPort);
-            InetSocketAddress address = new InetSocketAddress(serverAddress, serverPort);
-
-            Query query = new Query(queryAddress, address);
-            String[] onlinePlayers = new String[1];
-            onlinePlayers[0] = "Empty";
-
-
-            try {
-                query.sendQuery();
-                onlinePlayers = query.getOnlineUsernames();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
+        for (Server server : servers) {
+            queryServer.execute(server);
         }
     }
+
+
+    @Override
+    public void processFinish(Server result) {
+        db.updateServer(result);
+    }
+
+
 }

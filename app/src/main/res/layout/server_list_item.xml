@@ -12,6 +12,16 @@
     <TextView
         android:id="@+id/server_item_address"
         android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingRight="15dp"/>
+    <TextView
+        android:id="@+id/server_item_current_players"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingRight="15dp"/>
+    <TextView
+        android:id="@+id/server_item_max_players"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
 </LinearLayout>

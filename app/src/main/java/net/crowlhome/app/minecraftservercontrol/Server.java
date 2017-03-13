@@ -17,7 +17,7 @@ public class Server {
     private String _rconPass;
     private int _connectedPlayers;
     private int _maxPlayers;
-    private int _ping;
+    private String _currentPlayerNames;
 
     // Empty Constructor
     public Server() {
@@ -34,7 +34,7 @@ public class Server {
         this._rconPass = rconPass;
     }
 
-    public Server(int _id, String _serverName, String _serverAddress, int serverPort, int _queryPort, int _rconPort, String _rconPass, int _connectedPlayers, int _maxPlayers, int _ping) {
+    public Server(int _id, String _serverName, String _serverAddress, int serverPort, int _queryPort, int _rconPort, String _rconPass, int _connectedPlayers, int _maxPlayers, String _currentPlayerNames) {
         this._id = _id;
         this._serverName = _serverName;
         this._serverAddress = _serverAddress;
@@ -44,7 +44,7 @@ public class Server {
         this._rconPass = _rconPass;
         this._connectedPlayers = _connectedPlayers;
         this._maxPlayers = _maxPlayers;
-        this._ping = _ping;
+        this._currentPlayerNames = _currentPlayerNames;
     }
 
     public int get_id() {
@@ -119,11 +119,12 @@ public class Server {
         this._maxPlayers = _maxPlayers;
     }
 
-    public int get_ping() {
-        return _ping;
+    public String get_currentPlayerNames() {
+        return _currentPlayerNames;
     }
 
-    public void set_ping(int _ping) {
-        this._ping = _ping;
+    public void set_currentPlayerNames(String _currentPlayerNames) {
+        this._currentPlayerNames = _currentPlayerNames;
     }
+
 }
