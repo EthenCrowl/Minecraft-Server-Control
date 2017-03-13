@@ -14,6 +14,10 @@
     <item
         android:id="@+id/action_refresh_server_list_button"
         android:title="Refresh List"
+        android:orderInCategory="3"/>
+    <item
+        android:id="@+id/update_server_icon_button"
+        android:title="Update Server Icons"
         android:orderInCategory="2"/>
 
 </menu>

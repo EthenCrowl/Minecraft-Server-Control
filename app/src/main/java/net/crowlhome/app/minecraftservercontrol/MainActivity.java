@@ -32,13 +32,15 @@ import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, QueryServerResponse {
+        implements NavigationView.OnNavigationItemSelectedListener, QueryServerResponse,
+        DownloadServerImageResponse {
 
-    QueryServer queryServer = new QueryServer();
     private DatabaseHandler db;
     private String[] onlinePlayers;
     private ListView list;
     private ServerAdapter mAdapter;
+    private QueryServer queryServer;
+    private DownloadServerImage downloadServerImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +50,6 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         db = new DatabaseHandler(this);
-        queryServer.delegate = this;
         getAllServers();
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -95,6 +96,8 @@ public class MainActivity extends AppCompatActivity
             case R.id.action_query_server_button:
                 List<Server> servers = db.getAllServers();
                 for (Server server : servers) {
+                    queryServer = new QueryServer();
+                    queryServer.delegate = this;
                     queryServer.execute(server);
                 }
                 return true;
@@ -104,6 +107,13 @@ public class MainActivity extends AppCompatActivity
                 mAdapter.addAll(servers1);
                 mAdapter.notifyDataSetChanged();
                 return true;
+            case R.id.update_server_icon_button:
+                List<Server> servers2 = db.getAllServers();
+                for (Server server : servers2) {
+                    downloadServerImage = new DownloadServerImage();
+                    downloadServerImage.delegate = this;
+                    downloadServerImage.execute(server);
+                }
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -155,8 +165,21 @@ public class MainActivity extends AppCompatActivity
 
 
     @Override
-    public void processFinish(Server result) {
+    public void queryProcessFinish(Server result) {
         db.updateServer(result);
+        List<Server> servers = db.getAllServers();
+        mAdapter.clear();
+        mAdapter.addAll(servers);
+        mAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void downloadServerImageProcessFinish(Server result) {
+        db.updateServer(result);
+        List<Server> servers = db.getAllServers();
+        mAdapter.clear();
+        mAdapter.addAll(servers);
+        mAdapter.notifyDataSetChanged();
     }
 
 

@@ -1,5 +1,7 @@
 package net.crowlhome.app.minecraftservercontrol;
 
+import java.sql.Blob;
+
 /**
  * Created by ethen on 2/26/17.
  * Copyright Ethen Crowl
@@ -18,6 +20,8 @@ public class Server {
     private int _connectedPlayers;
     private int _maxPlayers;
     private String _currentPlayerNames;
+    private String _serverMOTD;
+    private byte[] _serverIcon;
 
     // Empty Constructor
     public Server() {
@@ -34,7 +38,9 @@ public class Server {
         this._rconPass = rconPass;
     }
 
-    public Server(int _id, String _serverName, String _serverAddress, int serverPort, int _queryPort, int _rconPort, String _rconPass, int _connectedPlayers, int _maxPlayers, String _currentPlayerNames) {
+
+
+    public Server(int _id, String _serverName, String _serverAddress, int serverPort, int _queryPort, int _rconPort, String _rconPass, int _connectedPlayers, int _maxPlayers, String _currentPlayerNames, String _serverMOTD, byte[] _serverIcon) {
         this._id = _id;
         this._serverName = _serverName;
         this._serverAddress = _serverAddress;
@@ -45,6 +51,8 @@ public class Server {
         this._connectedPlayers = _connectedPlayers;
         this._maxPlayers = _maxPlayers;
         this._currentPlayerNames = _currentPlayerNames;
+        this._serverMOTD = _serverMOTD;
+        this._serverIcon = _serverIcon;
     }
 
     public int get_id() {
@@ -127,4 +135,19 @@ public class Server {
         this._currentPlayerNames = _currentPlayerNames;
     }
 
+    public String get_serverMOTD() {
+        return _serverMOTD;
+    }
+
+    public void set_serverMOTD(String _serverMOTD) {
+        this._serverMOTD = _serverMOTD;
+    }
+
+    public byte[] get_serverIcon() {
+        return _serverIcon;
+    }
+
+    public void set_serverIcon(byte[] _serverIcon) {
+        this._serverIcon = _serverIcon;
+    }
 }

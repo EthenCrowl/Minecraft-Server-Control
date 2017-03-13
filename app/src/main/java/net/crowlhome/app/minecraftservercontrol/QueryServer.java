@@ -5,6 +5,7 @@ import android.text.TextUtils;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.sql.Blob;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,11 +17,7 @@ import java.util.Map;
 public class QueryServer extends AsyncTask<Server, Void, Server>{
     public QueryServerResponse delegate = null;
 
-    private Exception exception;
-    private int connectedPlayers = 0;
     private String currentPlayerNames = "Empty";
-    private int maxPlayers;
-    private String[] onlinePlayers = new String[0];
     private Server output;
 
     protected Server doInBackground(Server... servers) {
@@ -53,13 +50,12 @@ public class QueryServer extends AsyncTask<Server, Void, Server>{
         }
 
         // Join the username array into a single comma-separated String
-        if (onlinePlayers != null) {
-            if (onlinePlayers.length > 0) {
-                currentPlayerNames = TextUtils.join(", ", onlinePlayers);
-            }
+        if (onlinePlayers.length > 0) {
+            currentPlayerNames = TextUtils.join(", ", onlinePlayers);
         }
-        connectedPlayers = Integer.parseInt(values.get("numplayers"));
-        maxPlayers = Integer.parseInt(values.get("maxplayers"));
+        int connectedPlayers = Integer.parseInt(values.get("numplayers"));
+        int maxPlayers = Integer.parseInt(values.get("maxplayers"));
+        String output_MOTD = values.get("hostname");
 
         // Get the values for the output object
         int output_id = servers[0].get_id();
@@ -69,18 +65,19 @@ public class QueryServer extends AsyncTask<Server, Void, Server>{
         int output_query_port = servers[0].get_queryPort();
         int output_rcon_port = servers[0].get_rconPort();
         String output_rcon_pass = servers[0].get_rconPass();
+        byte[] output_icon = servers[0].get_serverIcon();
 
         // Create the output server object with the new values
         output = new Server(output_id, output_name, output_address, output_server_port,
                 output_query_port, output_rcon_port, output_rcon_pass, connectedPlayers, maxPlayers,
-                currentPlayerNames);
+                currentPlayerNames, output_MOTD, output_icon);
 
 
         return null;
     }
 
     protected void onPostExecute(Server server) {
-        delegate.processFinish(output);
+        delegate.queryProcessFinish(output);
     }
 
 }

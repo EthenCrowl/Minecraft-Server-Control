@@ -1,9 +1,5 @@
 package net.crowlhome.app.minecraftservercontrol;
 
-/**
- * Created by ethen on 2/10/17.
- */
-
 import org.xbill.DNS.Lookup;
 import org.xbill.DNS.Record;
 import org.xbill.DNS.SRVRecord;

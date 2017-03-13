@@ -6,5 +6,5 @@ package net.crowlhome.app.minecraftservercontrol;
  */
 
 public interface QueryServerResponse {
-    void processFinish(Server output);
+    void queryProcessFinish(Server output);
 }

@@ -5,7 +5,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.media.session.PlaybackState;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,11 +14,11 @@ import java.util.List;
  * Copyright Ethen Crowl
  */
 
-public class DatabaseHandler extends SQLiteOpenHelper {
+class DatabaseHandler extends SQLiteOpenHelper {
 
     // All Static variables
     // Database Version
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
 
     // Database name
     private static final String DATABASE_NAME = "mainDatabase";
@@ -38,8 +37,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String KEY_SERVER_PLAYERS_CONNECTED = "connected_players";
     private static final String KEY_SERVER_PLAYERS_MAX = "max_players";
     private static final String KEY_SERVER_CURRENT_PLAYER_NAMES = "current_player_names";
+    private static final String KEY_SERVER_MOTD = "server_motd";
+    private static final String KEY_SERVER_ICON = "server_icon";
 
-    public DatabaseHandler(Context context) {
+
+    DatabaseHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
@@ -56,7 +58,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 KEY_SERVER_RCON_PASS + " TEXT," +
                 KEY_SERVER_PLAYERS_CONNECTED + " INTEGER," +
                 KEY_SERVER_PLAYERS_MAX + " INTEGER," +
-                KEY_SERVER_CURRENT_PLAYER_NAMES + " TEXT)";
+                KEY_SERVER_CURRENT_PLAYER_NAMES + " TEXT," +
+                KEY_SERVER_MOTD + " TEXT," +
+                KEY_SERVER_ICON + " BLOB)";
         db.execSQL(CREATE_SERVER_LIST_TABLE);
 
     }
@@ -71,7 +75,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public void addServer(Server server) {
+    void addServer(Server server) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
@@ -92,22 +96,23 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         Cursor cursor = db.query(TABLE_SERVER_LIST, new String[] { KEY_ID,
         KEY_SERVER_NAME, KEY_SERVER_ADDRESS, KEY_SERVER_PORT_GAME, KEY_SERVER_PORT_QUERY, KEY_SERVER_PORT_RCON,
-        KEY_SERVER_RCON_PASS, KEY_SERVER_PLAYERS_CONNECTED, KEY_SERVER_PLAYERS_MAX, KEY_SERVER_CURRENT_PLAYER_NAMES}, KEY_ID + "=?",
+        KEY_SERVER_RCON_PASS, KEY_SERVER_PLAYERS_CONNECTED, KEY_SERVER_PLAYERS_MAX, KEY_SERVER_CURRENT_PLAYER_NAMES,
+                KEY_SERVER_MOTD, KEY_SERVER_ICON}, KEY_ID + "=?",
                 new String[] { String.valueOf(id) }, null, null, null, null);
         if (cursor != null)
             cursor.moveToFirst();
 
         Server server = new Server(cursor.getInt(0), cursor.getString(1), cursor.getString(2),
                 cursor.getInt(3), cursor.getInt(4), cursor.getInt(5), cursor.getString(6), cursor.getInt(7),
-                cursor.getInt(8), cursor.getString(9));
+                cursor.getInt(8), cursor.getString(9), cursor.getString(10), cursor.getBlob(11));
 
         cursor.close();
         return server;
     }
 
-    public List<Server> getAllServers() {
+    List<Server> getAllServers() {
         List<Server> serverList = new ArrayList<Server>();
-        // Selet All Query
+        // Select All Query
         String selectQuery = "SELECT * FROM " + TABLE_SERVER_LIST;
 
         SQLiteDatabase db = this.getReadableDatabase();
@@ -118,7 +123,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             do {
                 Server server = new Server(cursor.getInt(0), cursor.getString(1), cursor.getString(2),
                         cursor.getInt(3), cursor.getInt(4), cursor.getInt(5), cursor.getString(6), cursor.getInt(7),
-                        cursor.getInt(8), cursor.getString(9));
+                        cursor.getInt(8), cursor.getString(9), cursor.getString(10), cursor.getBlob(11));
                 serverList.add(server);
             } while (cursor.moveToNext());
         }
@@ -127,7 +132,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return serverList;
     }
 
-    public int updateServer(Server server) {
+    int updateServer(Server server) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
@@ -140,6 +145,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(KEY_SERVER_PLAYERS_CONNECTED, server.get_connectedPlayers());
         values.put(KEY_SERVER_PLAYERS_MAX, server.get_maxPlayers());
         values.put(KEY_SERVER_CURRENT_PLAYER_NAMES, server.get_currentPlayerNames());
+        values.put(KEY_SERVER_MOTD, server.get_serverMOTD());
+        values.put(KEY_SERVER_ICON, server.get_serverIcon());
 
         // updating row
         return db.update(TABLE_SERVER_LIST, values, KEY_ID + " = ?",
