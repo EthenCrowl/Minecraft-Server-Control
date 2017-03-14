@@ -1,9 +1,9 @@
 package net.crowlhome.app.minecraftservercontrol;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -12,9 +12,23 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ListView;
+
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, QueryServerResponse,
+        DownloadServerImageResponse {
+
+    private DatabaseHandler db;
+    private ListView list;
+    private ServerAdapter mAdapter;
+    private QueryServer queryServer;
+    private DownloadServerImage downloadServerImage;
+    private int prevNumServers;
+    private int numServers;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,14 +37,20 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        db = new DatabaseHandler(this);
+        getAllServers();
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                Intent i = new Intent(MainActivity.this, AddServerActivity.class);
+                startActivity(i);
+                queryAllServers();
+                refreshServerIcons();
             }
         });
+
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -40,6 +60,17 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        try {
+            queryAllServers();
+            refreshServerList();
+        } catch (Exception except) {
+            except.printStackTrace();
+        }
     }
 
     @Override
@@ -61,17 +92,48 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.action_query_server_button:
+                List<Server> servers = db.getAllServers();
+                for (Server server : servers) {
+                    queryServer = new QueryServer();
+                    queryServer.delegate = this;
+                    queryServer.execute(server);
+                }
+                mAdapter.clear();
+                mAdapter.addAll(servers);
+                mAdapter.notifyDataSetChanged();
+                return true;
+            case R.id.action_refresh_server_list_button:
+                List<Server> servers1 = db.getAllServers();
+                mAdapter.clear();
+                mAdapter.addAll(servers1);
+                mAdapter.notifyDataSetChanged();
+                return true;
+            case R.id.update_server_icon_button:
+                List<Server> servers2 = db.getAllServers();
+                for (Server server : servers2) {
+                    downloadServerImage = new DownloadServerImage();
+                    downloadServerImage.delegate = this;
+                    downloadServerImage.execute(server);
+                }
+                mAdapter.clear();
+                mAdapter.addAll(servers2);
+                mAdapter.notifyDataSetChanged();
+                return true;
+            case R.id.action_delete_all_servers:
+                List<Server> servers3 = db.getAllServers();
+                for (Server server : servers3) {
+                    db.deleteServer(server);
+                }
+                mAdapter.clear();
+                mAdapter.addAll(servers3);
+                mAdapter.notifyDataSetChanged();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
-
-        return super.onOptionsItemSelected(item);
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
@@ -98,4 +160,52 @@ public class MainActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+    private void refreshServerList() {
+        List<Server> servers = db.getAllServers();
+        mAdapter.clear();
+        mAdapter.addAll(servers);
+        mAdapter.notifyDataSetChanged();
+    }
+
+    private void getAllServers() {
+        List<Server> servers = db.getAllServers();
+        mAdapter = new ServerAdapter(this, (ArrayList<Server>) servers);
+        list = (ListView) findViewById(R.id.server_list);
+        list.setAdapter(mAdapter);
+    }
+
+    public void queryAllServers() {
+        List<Server> servers = db.getAllServers();
+        for (Server server : servers) {
+            queryServer = new QueryServer();
+            queryServer.delegate = this;
+            queryServer.execute(server);
+        }
+    }
+
+    public void refreshServerIcons() {
+        List<Server> servers2 = db.getAllServers();
+        for (Server server : servers2) {
+            downloadServerImage = new DownloadServerImage();
+            downloadServerImage.delegate = this;
+            downloadServerImage.execute(server);
+        }
+    }
+
+    @Override
+    public void queryProcessFinish(Server result) {
+        db.updateServer(result);
+        List<Server> servers = db.getAllServers();
+    }
+
+    @Override
+    public void downloadServerImageProcessFinish(Server result) {
+        if (result != null) {
+            db.updateServer(result);
+            List<Server> servers = db.getAllServers();
+        }
+    }
+
+
 }
