@@ -39,8 +39,10 @@ public class ServerAdapter extends ArrayAdapter<Server> {
         String motdTextRaw = server.get_serverMOTD();
         String[] invalidValues = { "�0", "�1", "�2", "�3", "�4", "�5", "�6", "�7", "�8", "�9", "�a", "�b", "�c", "�d", "�e", "�f", "�k", "�l", "�m", "�n", "�o", "�r"};
         String motdText = motdTextRaw;
-        for (String str : invalidValues) {
-            motdText = motdText.replace(str, "");
+        if (motdText != null) {
+            for (String str : invalidValues) {
+                motdText = motdText.replace(str, "");
+            }
         }
 
         motd.setText(motdText);
