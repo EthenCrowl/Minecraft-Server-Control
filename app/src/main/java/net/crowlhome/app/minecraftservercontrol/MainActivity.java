@@ -1,14 +1,9 @@
 package net.crowlhome.app.minecraftservercontrol;
 
-import android.app.LauncherActivity;
-import android.content.ClipData;
 import android.content.Intent;
-import android.database.DataSetObserver;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -17,30 +12,23 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 
-import java.io.IOException;
-import java.lang.reflect.Array;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, QueryServerResponse,
         DownloadServerImageResponse {
 
     private DatabaseHandler db;
-    private String[] onlinePlayers;
     private ListView list;
     private ServerAdapter mAdapter;
     private QueryServer queryServer;
     private DownloadServerImage downloadServerImage;
+    private int prevNumServers;
+    private int numServers;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +46,8 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View view) {
                 Intent i = new Intent(MainActivity.this, AddServerActivity.class);
                 startActivity(i);
+                queryAllServers();
+                refreshServerIcons();
             }
         });
 
@@ -70,6 +60,17 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        try {
+            queryAllServers();
+            refreshServerList();
+        } catch (Exception except) {
+            except.printStackTrace();
+        }
     }
 
     @Override
@@ -100,6 +101,9 @@ public class MainActivity extends AppCompatActivity
                     queryServer.delegate = this;
                     queryServer.execute(server);
                 }
+                mAdapter.clear();
+                mAdapter.addAll(servers);
+                mAdapter.notifyDataSetChanged();
                 return true;
             case R.id.action_refresh_server_list_button:
                 List<Server> servers1 = db.getAllServers();
@@ -114,6 +118,19 @@ public class MainActivity extends AppCompatActivity
                     downloadServerImage.delegate = this;
                     downloadServerImage.execute(server);
                 }
+                mAdapter.clear();
+                mAdapter.addAll(servers2);
+                mAdapter.notifyDataSetChanged();
+                return true;
+            case R.id.action_delete_all_servers:
+                List<Server> servers3 = db.getAllServers();
+                for (Server server : servers3) {
+                    db.deleteServer(server);
+                }
+                mAdapter.clear();
+                mAdapter.addAll(servers3);
+                mAdapter.notifyDataSetChanged();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -144,42 +161,50 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
+    private void refreshServerList() {
+        List<Server> servers = db.getAllServers();
+        mAdapter.clear();
+        mAdapter.addAll(servers);
+        mAdapter.notifyDataSetChanged();
+    }
+
     private void getAllServers() {
         List<Server> servers = db.getAllServers();
-
         mAdapter = new ServerAdapter(this, (ArrayList<Server>) servers);
-
         list = (ListView) findViewById(R.id.server_list);
-
         list.setAdapter(mAdapter);
-
     }
 
     public void queryAllServers() {
         List<Server> servers = db.getAllServers();
-
         for (Server server : servers) {
+            queryServer = new QueryServer();
+            queryServer.delegate = this;
             queryServer.execute(server);
         }
     }
 
+    public void refreshServerIcons() {
+        List<Server> servers2 = db.getAllServers();
+        for (Server server : servers2) {
+            downloadServerImage = new DownloadServerImage();
+            downloadServerImage.delegate = this;
+            downloadServerImage.execute(server);
+        }
+    }
 
     @Override
     public void queryProcessFinish(Server result) {
         db.updateServer(result);
         List<Server> servers = db.getAllServers();
-        mAdapter.clear();
-        mAdapter.addAll(servers);
-        mAdapter.notifyDataSetChanged();
     }
 
     @Override
     public void downloadServerImageProcessFinish(Server result) {
-        db.updateServer(result);
-        List<Server> servers = db.getAllServers();
-        mAdapter.clear();
-        mAdapter.addAll(servers);
-        mAdapter.notifyDataSetChanged();
+        if (result != null) {
+            db.updateServer(result);
+            List<Server> servers = db.getAllServers();
+        }
     }
 
 

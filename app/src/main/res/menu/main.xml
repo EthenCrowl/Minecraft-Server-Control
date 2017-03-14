@@ -19,5 +19,9 @@
         android:id="@+id/update_server_icon_button"
         android:title="Update Server Icons"
         android:orderInCategory="2"/>
+    <item
+        android:id="@+id/action_delete_all_servers"
+        android:title="Delete All Servers"
+        android:orderInCategory="4"/>
 
 </menu>

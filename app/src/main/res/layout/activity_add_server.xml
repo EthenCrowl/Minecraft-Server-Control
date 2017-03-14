@@ -30,7 +30,8 @@
             <EditText
                 android:id="@+id/server_name"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:inputType="textCapWords"/>
 
         </LinearLayout>
 
@@ -48,7 +49,9 @@
             <EditText
                 android:id="@+id/server_address"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal|text"
+                android:digits="0123456789."/>
 
         </LinearLayout>
         <LinearLayout
@@ -65,7 +68,8 @@
             <EditText
                 android:id="@+id/server_port"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:inputType="number"/>
 
         </LinearLayout>
         <LinearLayout
@@ -82,7 +86,8 @@
             <EditText
                 android:id="@+id/query_port"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:inputType="number"/>
 
         </LinearLayout>
         <LinearLayout
@@ -99,7 +104,8 @@
             <EditText
                 android:id="@+id/rcon_port"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:inputType="number"/>
 
         </LinearLayout>
         <LinearLayout
@@ -116,7 +122,8 @@
             <EditText
                 android:id="@+id/rcon_password"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"/>
 
         </LinearLayout>
 

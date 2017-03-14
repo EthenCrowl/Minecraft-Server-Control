@@ -16,17 +16,23 @@
         android:id="@+id/server_item_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingRight="15dp"/>
+        android:paddingLeft="15dp"
+        android:paddingTop="20dp"
+        android:layout_toRightOf="@id/server_item_icon"/>
     <TextView
-        android:id="@+id/server_item_address"
+        android:id="@+id/server_item_motd"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingRight="15dp"/>
+        android:paddingTop="35dp"
+        android:paddingLeft="15dp"
+        android:layout_alignTop="@id/server_item_name"
+        android:layout_toRightOf="@id/server_item_icon"/>
     <TextView
         android:id="@+id/server_item_num_players"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingRight="15dp"
-        android:layout_gravity="right"/>
+        android:paddingTop="15dp"
+        android:layout_alignParentRight="true"/>
 
 </RelativeLayout>

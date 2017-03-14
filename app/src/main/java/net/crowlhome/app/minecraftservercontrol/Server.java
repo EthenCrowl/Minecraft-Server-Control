@@ -1,6 +1,5 @@
 package net.crowlhome.app.minecraftservercontrol;
 
-import java.sql.Blob;
 
 /**
  * Created by ethen on 2/26/17.
