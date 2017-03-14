@@ -196,15 +196,15 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void queryProcessFinish(Server result) {
         db.updateServer(result);
-        List<Server> servers = db.getAllServers();
+        refreshServerList();
     }
 
     @Override
     public void downloadServerImageProcessFinish(Server result) {
         if (result != null) {
             db.updateServer(result);
-            List<Server> servers = db.getAllServers();
         }
+        refreshServerList();
     }
 
 
