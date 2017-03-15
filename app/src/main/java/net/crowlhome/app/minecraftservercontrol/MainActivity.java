@@ -6,6 +6,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -23,12 +24,11 @@ public class MainActivity extends AppCompatActivity
         DownloadServerImageResponse {
 
     private DatabaseHandler db;
-    private ListView list;
     private ServerAdapter mAdapter;
     private QueryServer queryServer;
     private DownloadServerImage downloadServerImage;
-    private int prevNumServers;
-    private int numServers;
+    SwipeRefreshLayout swipeRefreshLayout;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         db = new DatabaseHandler(this);
-        getAllServers();
+        createServerList();
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -60,13 +60,21 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh_layout);
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                queryAllServers();
+            }
+        });
     }
 
     @Override
     public void onResume() {
         super.onResume();
         try {
-            queryAllServers();
+            //queryAllServers();
         } catch (Exception except) {
             except.printStackTrace();
         }
@@ -100,15 +108,10 @@ public class MainActivity extends AppCompatActivity
                     queryServer.delegate = this;
                     queryServer.execute(server);
                 }
-                mAdapter.clear();
-                mAdapter.addAll(servers);
-                mAdapter.notifyDataSetChanged();
+                refreshServerList();
                 return true;
             case R.id.action_refresh_server_list_button:
-                List<Server> servers1 = db.getAllServers();
-                mAdapter.clear();
-                mAdapter.addAll(servers1);
-                mAdapter.notifyDataSetChanged();
+                refreshServerList();
                 return true;
             case R.id.update_server_icon_button:
                 List<Server> servers2 = db.getAllServers();
@@ -117,18 +120,14 @@ public class MainActivity extends AppCompatActivity
                     downloadServerImage.delegate = this;
                     downloadServerImage.execute(server);
                 }
-                mAdapter.clear();
-                mAdapter.addAll(servers2);
-                mAdapter.notifyDataSetChanged();
+                refreshServerList();
                 return true;
             case R.id.action_delete_all_servers:
                 List<Server> servers3 = db.getAllServers();
                 for (Server server : servers3) {
                     db.deleteServer(server);
                 }
-                mAdapter.clear();
-                mAdapter.addAll(servers3);
-                mAdapter.notifyDataSetChanged();
+                refreshServerList();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -167,10 +166,10 @@ public class MainActivity extends AppCompatActivity
         mAdapter.notifyDataSetChanged();
     }
 
-    private void getAllServers() {
+    private void createServerList() {
         List<Server> servers = db.getAllServers();
         mAdapter = new ServerAdapter(this, (ArrayList<Server>) servers);
-        list = (ListView) findViewById(R.id.server_list);
+        ListView list = (ListView) findViewById(R.id.server_list);
         list.setAdapter(mAdapter);
     }
 
@@ -194,7 +193,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void queryProcessFinish(Server result) {
-        if (result.get_serverIcon() == null) {
+        if (result.hasIcon() == false) {
             downloadServerImage = new DownloadServerImage();
             downloadServerImage.delegate = this;
             downloadServerImage.execute(result);
@@ -202,6 +201,7 @@ public class MainActivity extends AppCompatActivity
         	db.updateServer(result);
         	refreshServerList();
 		}
+        swipeRefreshLayout.setRefreshing(false);
     }
 
     @Override

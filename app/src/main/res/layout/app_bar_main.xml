@@ -30,14 +30,21 @@
         android:layout_margin="@dimen/fab_margin"
         app:srcCompat="@mipmap/ic_action_add"/>
 
-    <include layout="@layout/content_main"/>
 
-    <ListView
-        android:id="@+id/server_list"
+
+    <android.support.v4.widget.SwipeRefreshLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:paddingTop="?attr/actionBarSize">
+        android:layout_height="wrap_content"
+        android:id="@+id/swipe_refresh_layout"
+        android:layout_marginTop="?attr/actionBarSize">
 
-    </ListView>
+        <ListView
+            android:id="@+id/server_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+        </ListView>
+
+    </android.support.v4.widget.SwipeRefreshLayout>
+
 
 </android.support.design.widget.CoordinatorLayout>
