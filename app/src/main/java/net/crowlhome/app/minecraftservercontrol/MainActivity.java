@@ -198,14 +198,15 @@ public class MainActivity extends AppCompatActivity
             downloadServerImage = new DownloadServerImage();
             downloadServerImage.delegate = this;
             downloadServerImage.execute(result);
-        }
-        db.updateServer(result);
-        refreshServerList();
+        } else {
+        	db.updateServer(result);
+        	refreshServerList();
+		}
     }
 
     @Override
     public void downloadServerImageProcessFinish(Server result) {
-        if (result != null) {
+        if (result.hasIcon()) {
             db.updateServer(result);
         }
         refreshServerList();
