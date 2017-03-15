@@ -67,7 +67,6 @@ public class MainActivity extends AppCompatActivity
         super.onResume();
         try {
             queryAllServers();
-            refreshServerList();
         } catch (Exception except) {
             except.printStackTrace();
         }
@@ -195,6 +194,11 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void queryProcessFinish(Server result) {
+        if (result.get_serverIcon() == null) {
+            downloadServerImage = new DownloadServerImage();
+            downloadServerImage.delegate = this;
+            downloadServerImage.execute(result);
+        }
         db.updateServer(result);
         refreshServerList();
     }
