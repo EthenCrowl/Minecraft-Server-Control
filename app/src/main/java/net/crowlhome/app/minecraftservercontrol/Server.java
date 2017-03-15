@@ -149,4 +149,12 @@ public class Server {
     public void set_serverIcon(byte[] _serverIcon) {
         this._serverIcon = _serverIcon;
     }
+    
+    public Boolean hasIcon() {
+        if (_serverIcon != null) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
