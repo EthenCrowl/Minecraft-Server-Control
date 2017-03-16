@@ -13,6 +13,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import java.util.ArrayList;
@@ -25,9 +26,10 @@ public class MainActivity extends AppCompatActivity
 
     private DatabaseHandler db;
     private ServerAdapter mAdapter;
-    private QueryAllServers queryAllServers;
     private DownloadServerImage downloadServerImage;
     private SwipeRefreshLayout swipeRefreshLayout;
+    private ListView list;
+    private List<Server> serverList;
 
 
     @Override
@@ -38,6 +40,7 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         db = new DatabaseHandler(this);
+        serverList = db.getAllServers();
         createServerList();
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -46,11 +49,17 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View view) {
                 Intent i = new Intent(MainActivity.this, AddServerActivity.class);
                 startActivity(i);
-                queryAllServers();
-                refreshServerIcons();
             }
         });
 
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                Intent intent = new Intent(MainActivity.this, ServerActivity.class);
+                intent.putExtra("SERVER_ID", serverList.get(position).get_id());
+                startActivity(intent);
+            }
+        });
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -74,7 +83,8 @@ public class MainActivity extends AppCompatActivity
     public void onResume() {
         super.onResume();
         try {
-            //queryAllServers();
+            queryAllServers();
+
         } catch (Exception except) {
             except.printStackTrace();
         }
@@ -108,17 +118,13 @@ public class MainActivity extends AppCompatActivity
                 refreshServerList();
                 return true;
             case R.id.update_server_icon_button:
-                List<Server> servers2 = db.getAllServers();
-                for (Server server : servers2) {
-                    downloadServerImage = new DownloadServerImage();
-                    downloadServerImage.delegate = this;
-                    downloadServerImage.execute(server);
+                for (Server server : serverList) {
+                    updateServerIcon(server);
                 }
                 refreshServerList();
                 return true;
             case R.id.action_delete_all_servers:
-                List<Server> servers3 = db.getAllServers();
-                for (Server server : servers3) {
+                for (Server server : serverList) {
                     db.deleteServer(server);
                 }
                 refreshServerList();
@@ -154,46 +160,40 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void refreshServerList() {
-        List<Server> servers = db.getAllServers();
+        serverList = db.getAllServers();
         mAdapter.clear();
-        mAdapter.addAll(servers);
+        mAdapter.addAll(serverList);
         mAdapter.notifyDataSetChanged();
     }
 
     private void createServerList() {
-        List<Server> servers = db.getAllServers();
-        mAdapter = new ServerAdapter(this, (ArrayList<Server>) servers);
-        ListView list = (ListView) findViewById(R.id.server_list);
+        mAdapter = new ServerAdapter(this, (ArrayList<Server>) serverList);
+        list = (ListView) findViewById(R.id.server_list);
         list.setAdapter(mAdapter);
     }
 
     public void queryAllServers() {
-        List<Server> servers = db.getAllServers();
-        if (servers.size() != 0) {
-            queryAllServers = new QueryAllServers();
+        serverList = db.getAllServers();
+        if (serverList.size() != 0) {
+            QueryAllServers queryAllServers = new QueryAllServers();
             queryAllServers.delegate = this;
-            queryAllServers.execute(servers);
+            queryAllServers.execute(serverList);
         } else {
             swipeRefreshLayout.setRefreshing(false);
         }
     }
 
-    public void refreshServerIcons() {
-        List<Server> servers2 = db.getAllServers();
-        for (Server server : servers2) {
+    public void updateServerIcon(Server server) {
             downloadServerImage = new DownloadServerImage();
             downloadServerImage.delegate = this;
             downloadServerImage.execute(server);
-        }
     }
 
     @Override
     public void queryAllServersProcessFinish(List<Server> result) {
         for (Server server : result) {
             if (server.hasIcon() == false) {
-                downloadServerImage = new DownloadServerImage();
-                downloadServerImage.delegate = this;
-                downloadServerImage.execute(server);
+                updateServerIcon(server);
             } else {
                 db.updateServer(server);
                 refreshServerList();
@@ -206,8 +206,8 @@ public class MainActivity extends AppCompatActivity
     public void downloadServerImageProcessFinish(Server result) {
         if (result.hasIcon()) {
             db.updateServer(result);
+            refreshServerList();
         }
-        refreshServerList();
     }
 
 
