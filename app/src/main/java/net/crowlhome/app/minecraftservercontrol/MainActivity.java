@@ -20,14 +20,14 @@ import java.util.List;
 
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, QueryServerResponse,
+        implements NavigationView.OnNavigationItemSelectedListener, QueryAllServersResponse,
         DownloadServerImageResponse {
 
     private DatabaseHandler db;
     private ServerAdapter mAdapter;
-    private QueryServer queryServer;
+    private QueryAllServers queryAllServers;
     private DownloadServerImage downloadServerImage;
-    SwipeRefreshLayout swipeRefreshLayout;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
 
     @Override
@@ -102,13 +102,7 @@ public class MainActivity extends AppCompatActivity
         // Handle item selection
         switch (item.getItemId()) {
             case R.id.action_query_server_button:
-                List<Server> servers = db.getAllServers();
-                for (Server server : servers) {
-                    queryServer = new QueryServer();
-                    queryServer.delegate = this;
-                    queryServer.execute(server);
-                }
-                refreshServerList();
+                queryAllServers();
                 return true;
             case R.id.action_refresh_server_list_button:
                 refreshServerList();
@@ -175,10 +169,12 @@ public class MainActivity extends AppCompatActivity
 
     public void queryAllServers() {
         List<Server> servers = db.getAllServers();
-        for (Server server : servers) {
-            queryServer = new QueryServer();
-            queryServer.delegate = this;
-            queryServer.execute(server);
+        if (servers.size() != 0) {
+            queryAllServers = new QueryAllServers();
+            queryAllServers.delegate = this;
+            queryAllServers.execute(servers);
+        } else {
+            swipeRefreshLayout.setRefreshing(false);
         }
     }
 
@@ -192,15 +188,17 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void queryProcessFinish(Server result) {
-        if (result.hasIcon() == false) {
-            downloadServerImage = new DownloadServerImage();
-            downloadServerImage.delegate = this;
-            downloadServerImage.execute(result);
-        } else {
-        	db.updateServer(result);
-        	refreshServerList();
-		}
+    public void queryAllServersProcessFinish(List<Server> result) {
+        for (Server server : result) {
+            if (server.hasIcon() == false) {
+                downloadServerImage = new DownloadServerImage();
+                downloadServerImage.delegate = this;
+                downloadServerImage.execute(server);
+            } else {
+                db.updateServer(server);
+                refreshServerList();
+            }
+        }
         swipeRefreshLayout.setRefreshing(false);
     }
 
