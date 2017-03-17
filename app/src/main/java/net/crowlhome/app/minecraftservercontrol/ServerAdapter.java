@@ -60,5 +60,4 @@ public class ServerAdapter extends ArrayAdapter<Server> {
 
         return convertView;
     }
-
 }
