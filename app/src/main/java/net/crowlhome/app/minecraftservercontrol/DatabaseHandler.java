@@ -2,12 +2,14 @@ package net.crowlhome.app.minecraftservercontrol;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 
 /**
  * Created by ethen on 2/26/17.
@@ -18,13 +20,16 @@ class DatabaseHandler extends SQLiteOpenHelper {
 
     // All Static variables
     // Database Version
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 1;
 
     // Database name
     private static final String DATABASE_NAME = "mainDatabase";
 
     // Server list table name
     private static final String TABLE_SERVER_LIST = "server";
+
+    // Player list table name
+    private static final String TABLE_PLAYER_LIST = "player_list";
 
     // Server List Column names
     private static final String KEY_ID = "server_id";
@@ -39,6 +44,13 @@ class DatabaseHandler extends SQLiteOpenHelper {
     private static final String KEY_SERVER_CURRENT_PLAYER_NAMES = "current_player_names";
     private static final String KEY_SERVER_MOTD = "server_motd";
     private static final String KEY_SERVER_ICON = "server_icon";
+
+    // Player list Column names
+    private static final String KEY_SERVER_ID = "server_id";
+    private static final String KEY_UUID = "uuid";
+    private static final String KEY_NAME = "name";
+    private static final String KEY_FACE = "face";
+    private static final String KEY_SCOREBOARD = "scoreboard";
 
 
     DatabaseHandler(Context context) {
@@ -63,16 +75,21 @@ class DatabaseHandler extends SQLiteOpenHelper {
                 KEY_SERVER_ICON + " BLOB)";
         db.execSQL(CREATE_SERVER_LIST_TABLE);
 
+        String CREATE_PLAYER_LIST_TABLE = "CREATE TABLE " + TABLE_PLAYER_LIST + "(" +
+                KEY_SERVER_ID + " INTEGER NOT NULL," +
+                KEY_UUID + " TEXT NOT NULL," +
+                KEY_NAME + " TEXT," +
+                KEY_FACE + " BLOB," +
+                KEY_SCOREBOARD + " TEXT," +
+                "PRIMARY KEY (" + KEY_SERVER_ID + "," + KEY_UUID + "))";
+        db.execSQL(CREATE_PLAYER_LIST_TABLE);
+
     }
 
     // Upgrading database
     @Override
     public void onUpgrade(SQLiteDatabase db, int i, int i1) {
-        // Drop older table if existed
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_SERVER_LIST);
-
-        // Create the tables again
-        onCreate(db);
+        // Alter your tables here
     }
 
     void addServer(Server server) {
@@ -158,5 +175,52 @@ class DatabaseHandler extends SQLiteOpenHelper {
         db.delete(TABLE_SERVER_LIST, KEY_ID + " = ?",
                 new String[] { String.valueOf(server.get_id()) });
         db.close();
+    }
+
+    public void addPlayer(Player player) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(KEY_SERVER_ID, player.get_server_id());
+        values.put(KEY_UUID, player.get_uuid());
+        values.put(KEY_NAME, player.get_name());
+
+        // Insert Row
+        db.insert(TABLE_PLAYER_LIST, null, values);
+        db.close(); // Close database connection
+    }
+
+    int updatePlayer(Player player) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(KEY_NAME, player.get_name());
+        values.put(KEY_FACE, player.get_face());
+        values.put(KEY_SCOREBOARD, player.get_scoreboard());
+
+        // Update Row
+        return db.update(TABLE_PLAYER_LIST, values, KEY_SERVER_ID + " = ? AND " + KEY_UUID + " = ?",
+                new String[] { String.valueOf(player.get_server_id()),
+                        String.valueOf(player.get_uuid()) });
+    }
+
+    List<Player> getAllPlayers(int server_id) {
+        List<Player> playerList = new ArrayList<Player>();
+        // Select All Query
+        String selectQuery = ("SELECT * FROM " + TABLE_PLAYER_LIST + " WHERE " + KEY_SERVER_ID +
+                " = " + String.valueOf(server_id));
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        // loop through all rows and add them to the list
+        if (cursor.moveToFirst()) {
+            do {
+                Player player = new Player(cursor.getInt(0), cursor.getString(1),
+                        cursor.getString(2), cursor.getBlob(3), cursor.getString(4));
+                playerList.add(player);
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        return playerList;
     }
 }
