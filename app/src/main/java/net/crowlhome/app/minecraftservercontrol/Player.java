@@ -40,6 +40,14 @@ public class Player {
         this._scoreboard = scoreboard;
     }
 
+    public boolean hasFace() {
+        if (_face != null) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     public int get_server_id() {
         return _server_id;
     }

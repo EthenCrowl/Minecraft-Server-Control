@@ -3,26 +3,27 @@ package net.crowlhome.app.minecraftservercontrol;
 import android.os.AsyncTask;
 
 import org.apache.commons.io.IOUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
 
 /**
  * Created by ethen on 3/13/17.
  * Copyright Ethen Crowl
  */
 
-public class DownloadPlayerFace extends AsyncTask<Player, Void, Player> {
-    public DownloadPlayerFaceResponse delegate = null;
-
-    private Player result;
-    private byte[] outputByteArray;
+public class DownloadPlayerUUID extends AsyncTask<Player, Void, Player> {
+    public DownloadPlayerUUIDResponse delegate = null;
 
     protected Player doInBackground(Player... players) {
-        String uuid = players[0].get_uuid();
-        String urls = "https://crafatar.com/avatars/" + uuid + "?overlay";
+        String username = players[0].get_name();
+        String urls = "https://api.mojang.com/users/profiles/minecraft/" + username;
         try {
             URL url = new URL(urls);
             try
@@ -31,17 +32,17 @@ public class DownloadPlayerFace extends AsyncTask<Player, Void, Player> {
                 conn.setDoInput(true);
                 conn.connect();
                 InputStream inputStream = conn.getInputStream();
-                outputByteArray = IOUtils.toByteArray(inputStream);
+                JSONObject values = new JSONObject(inputStream.toString());
+                String uuid = values.getJSONObject("id").toString();
 
                 // create new Player object with new values
-                result = players[0];
-                result.set_face(outputByteArray);
+                Player result = players[0];
+                result.set_uuid(uuid);
 
             }
             catch(IOException e)
             {
                 e.printStackTrace();
-//          Toast.makeText(PhotoRating.this, "Connection Problem. Try Again.", Toast.LENGTH_SHORT).show();
             }
         } catch (Exception except) {
             except.printStackTrace();
@@ -50,7 +51,7 @@ public class DownloadPlayerFace extends AsyncTask<Player, Void, Player> {
     }
 
     protected void onPostExecute(Player result) {
-        delegate.downloadPlayerFaceProcessFinish(result);
+        delegate.downloadPlayerUUIDProcessFinish(result);
     }
 
 }

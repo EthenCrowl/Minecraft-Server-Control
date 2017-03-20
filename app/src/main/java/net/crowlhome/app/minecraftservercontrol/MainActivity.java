@@ -192,7 +192,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void queryAllServersProcessFinish(List<Server> result) {
         for (Server server : result) {
-            if (server.hasIcon() == false) {
+            if (!server.hasIcon()) {
                 updateServerIcon(server);
             } else {
                 db.updateServer(server);

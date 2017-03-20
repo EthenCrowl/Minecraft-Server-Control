@@ -76,12 +76,12 @@ class DatabaseHandler extends SQLiteOpenHelper {
         db.execSQL(CREATE_SERVER_LIST_TABLE);
 
         String CREATE_PLAYER_LIST_TABLE = "CREATE TABLE " + TABLE_PLAYER_LIST + "(" +
-                KEY_SERVER_ID + " INTEGER NOT NULL," +
-                KEY_UUID + " TEXT NOT NULL," +
+                KEY_SERVER_ID + " INTEGER PRIMARY KEY NOT NULL," +
+                KEY_UUID + " TEXT PRIMARY KEY NOT NULL," +
                 KEY_NAME + " TEXT," +
                 KEY_FACE + " BLOB," +
-                KEY_SCOREBOARD + " TEXT," +
-                "PRIMARY KEY (" + KEY_SERVER_ID + "," + KEY_UUID + "))";
+                KEY_SCOREBOARD + " TEXT)"; //+
+               // "PRIMARY KEY (" + KEY_SERVER_ID + "," + KEY_UUID + "))";
         db.execSQL(CREATE_PLAYER_LIST_TABLE);
 
     }
@@ -222,5 +222,38 @@ class DatabaseHandler extends SQLiteOpenHelper {
 
         cursor.close();
         return playerList;
+    }
+
+    public Player getPlayer(int server_id, String uuid) {
+        // Select All Query
+        String selectQuery = ("SELECT * FROM " + TABLE_PLAYER_LIST + " WHERE " + KEY_SERVER_ID +
+                " = " + String.valueOf(server_id) + " AND " + KEY_UUID + " = " + uuid);
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        if (cursor != null) {
+            cursor.moveToFirst();
+        }
+
+        Player player = new Player(cursor.getInt(0), cursor.getString(1),
+                cursor.getString(2), cursor.getBlob(3), cursor.getString(4));
+        cursor.close();
+        return player;
+    }
+
+
+
+    public boolean checkPlayerExists(int server_id, String username) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String Query = "Select * from " + TABLE_PLAYER_LIST + " where " + KEY_SERVER_ID + " = " +
+                server_id + " AND " + KEY_NAME + " = " + username;
+        Cursor cursor = db.rawQuery(Query, null);
+        if(cursor.getCount() <= 0){
+            cursor.close();
+            return false;
+        }
+        cursor.close();
+        return true;
     }
 }
