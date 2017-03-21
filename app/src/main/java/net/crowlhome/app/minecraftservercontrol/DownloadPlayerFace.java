@@ -17,11 +17,14 @@ import java.net.URL;
 public class DownloadPlayerFace extends AsyncTask<Player, Void, Player> {
     public DownloadPlayerFaceResponse delegate = null;
 
-    private Player result;
+    private Player input;
+    private Player output;
     private byte[] outputByteArray;
 
     protected Player doInBackground(Player... players) {
-        String uuid = players[0].get_uuid();
+        input = players[0];
+
+        String uuid = input.get_uuid();
         String urls = "https://crafatar.com/avatars/" + uuid + "?overlay";
         try {
             URL url = new URL(urls);
@@ -34,8 +37,11 @@ public class DownloadPlayerFace extends AsyncTask<Player, Void, Player> {
                 outputByteArray = IOUtils.toByteArray(inputStream);
 
                 // create new Player object with new values
-                result = players[0];
-                result.set_face(outputByteArray);
+                output = new Player();
+                output.set_face(outputByteArray);
+                output.set_server_id(input.get_server_id());
+                output.set_name(input.get_name());
+                output.set_uuid(input.get_uuid());
 
             }
             catch(IOException e)
@@ -50,7 +56,7 @@ public class DownloadPlayerFace extends AsyncTask<Player, Void, Player> {
     }
 
     protected void onPostExecute(Player result) {
-        delegate.downloadPlayerFaceProcessFinish(result);
+        delegate.downloadPlayerFaceProcessFinish(output);
     }
 
 }

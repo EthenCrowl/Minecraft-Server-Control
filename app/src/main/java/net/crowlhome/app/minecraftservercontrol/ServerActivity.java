@@ -32,13 +32,39 @@ public class ServerActivity extends AppCompatActivity implements DownloadPlayerF
         setContentView(R.layout.activity_server);
 
         db = new DatabaseHandler(this);
-        server_id = Integer.parseInt(getIntent().getStringExtra("SERVER_ID"));
+        String server_id_string = getIntent().getStringExtra("SERVER_ID");
+        server_id = Integer.parseInt(server_id_string);
         currentServer = db.getServer(server_id);
 
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.activity_server);
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                getNewCurrentPlayers(currentServer);
+                refreshPlayerListView();
+            }
+        });
 
-        updateCurrentPlayerList();
-        updatePlayersInDatabase();
-        createPlayerListView();
+
+        if (currentServer.get_connectedPlayers() > 0) {
+            updateCurrentPlayerList();
+            updatePlayersInDatabase();
+        }
+
+        allPlayers = db.getAllPlayers(server_id);
+
+        for (Player player : allPlayers) {
+            if (!player.hasFace()) {
+                getPlayerFace(player);
+            }
+        }
+
+        allPlayers = db.getAllPlayers(server_id);
+
+        if (allPlayers != null) {
+            createPlayerListView();
+        }
+
 
 
 
@@ -52,27 +78,29 @@ public class ServerActivity extends AppCompatActivity implements DownloadPlayerF
     }
 
     private void createPlayerListView() {
-        mAdapter = new PlayerAdapter(this, (ArrayList<Player>) allPlayers,
-                (ArrayList<Player>) playerList);
-        list = (ListView) findViewById(R.id.server_list);
+        mAdapter = new PlayerAdapter(this, (ArrayList<Player>) allPlayers, server_id);
+        list = (ListView) findViewById(R.id.player_list_view);
         list.setAdapter(mAdapter);
     }
 
     private void updateCurrentPlayerList() {
-        String currentPlayers = currentServer.get_currentPlayerNames();
-        String joinedMinusBrackets = currentPlayers.substring( 1,
-                currentPlayers.length() - 1);
-        String[] reSplit = joinedMinusBrackets.split( ", ");
-        currentConnectedPlayers = Arrays.asList(reSplit);
+        try {
+            String currentPlayers = currentServer.get_currentPlayerNames();
+            String[] reSplit = currentPlayers.split(", ");
+            currentConnectedPlayers = Arrays.asList(reSplit);
+        } catch (Exception e) {
+            e.printStackTrace();
+            currentConnectedPlayers = new ArrayList<>();
+        }
     }
 
     private void updatePlayersInDatabase() {
-        for (String name : currentConnectedPlayers) {
-            Player player = new Player(server_id, name);
-            playerList.add(player);
-        }
-        for (Player player : playerList) {
-            if (!db.checkPlayerExists(server_id, player.get_name())) {
+        if (currentConnectedPlayers != null) {
+            for (String name : currentConnectedPlayers) {
+                Player player = new Player(server_id, name);
+                playerList.add(player);
+            }
+            for (Player player : playerList) {
                 getUUID(player);
             }
         }
@@ -98,18 +126,19 @@ public class ServerActivity extends AppCompatActivity implements DownloadPlayerF
 
     @Override
     public void downloadPlayerFaceProcessFinish(Player result) {
-        db.addPlayer(result);
-        allPlayers = db.getAllPlayers(server_id);
+        db.updatePlayer(result);
     }
 
     @Override
     public void downloadPlayerUUIDProcessFinish(Player result) {
-        getPlayerFace(result);
+        db.addPlayer(result);
     }
 
     @Override
     public void queryProcessFinish(Server server) {
         db.updateServer(server);
         currentServer = db.getServer(server_id);
+        updateCurrentPlayerList();
+        swipeRefreshLayout.setRefreshing(false);
     }
 }

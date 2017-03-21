@@ -56,7 +56,8 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                 Intent intent = new Intent(MainActivity.this, ServerActivity.class);
-                intent.putExtra("SERVER_ID", serverList.get(position).get_id());
+                int server_id = serverList.get(position).get_id();
+                intent.putExtra("SERVER_ID", Integer.toString(server_id));
                 startActivity(intent);
             }
         });

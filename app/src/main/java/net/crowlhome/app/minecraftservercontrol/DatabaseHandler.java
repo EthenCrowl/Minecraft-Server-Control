@@ -20,7 +20,7 @@ class DatabaseHandler extends SQLiteOpenHelper {
 
     // All Static variables
     // Database Version
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 6;
 
     // Database name
     private static final String DATABASE_NAME = "mainDatabase";
@@ -76,12 +76,12 @@ class DatabaseHandler extends SQLiteOpenHelper {
         db.execSQL(CREATE_SERVER_LIST_TABLE);
 
         String CREATE_PLAYER_LIST_TABLE = "CREATE TABLE " + TABLE_PLAYER_LIST + "(" +
-                KEY_SERVER_ID + " INTEGER PRIMARY KEY NOT NULL," +
-                KEY_UUID + " TEXT PRIMARY KEY NOT NULL," +
+                KEY_SERVER_ID + " INTEGER NOT NULL," +
+                KEY_UUID + " TEXT NOT NULL," +
                 KEY_NAME + " TEXT," +
                 KEY_FACE + " BLOB," +
-                KEY_SCOREBOARD + " TEXT)"; //+
-               // "PRIMARY KEY (" + KEY_SERVER_ID + "," + KEY_UUID + "))";
+                KEY_SCOREBOARD + " TEXT," +
+               " PRIMARY KEY (" + KEY_SERVER_ID + "," + KEY_UUID + "))";
         db.execSQL(CREATE_PLAYER_LIST_TABLE);
 
     }
@@ -178,15 +178,19 @@ class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public void addPlayer(Player player) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(KEY_SERVER_ID, player.get_server_id());
-        values.put(KEY_UUID, player.get_uuid());
-        values.put(KEY_NAME, player.get_name());
+        if (checkPlayerExists(player.get_server_id(), player.get_uuid())) {
+            updatePlayer(player);
+        } else {
+            SQLiteDatabase db = this.getWritableDatabase();
+            ContentValues values = new ContentValues();
+            values.put(KEY_SERVER_ID, player.get_server_id());
+            values.put(KEY_UUID, player.get_uuid());
+            values.put(KEY_NAME, player.get_name());
 
-        // Insert Row
-        db.insert(TABLE_PLAYER_LIST, null, values);
-        db.close(); // Close database connection
+            // Insert Row
+            db.insert(TABLE_PLAYER_LIST, null, values);
+            db.close(); // Close database connection
+        }
     }
 
     int updatePlayer(Player player) {
@@ -244,10 +248,10 @@ class DatabaseHandler extends SQLiteOpenHelper {
 
 
 
-    public boolean checkPlayerExists(int server_id, String username) {
+    public boolean checkPlayerExists(int server_id, String uuid) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String Query = "Select * from " + TABLE_PLAYER_LIST + " where " + KEY_SERVER_ID + " = " +
-                server_id + " AND " + KEY_NAME + " = " + username;
+        String Query = "SELECT * FROM " + TABLE_PLAYER_LIST + " WHERE " + KEY_SERVER_ID + " = " +
+                server_id + " AND " + KEY_UUID + " = '" + uuid + "'";
         Cursor cursor = db.rawQuery(Query, null);
         if(cursor.getCount() <= 0){
             cursor.close();

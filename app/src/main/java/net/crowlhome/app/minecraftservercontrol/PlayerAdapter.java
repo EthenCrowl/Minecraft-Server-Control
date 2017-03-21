@@ -5,6 +5,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +14,9 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -21,16 +26,31 @@ import java.util.ArrayList;
 
 public class PlayerAdapter extends ArrayAdapter<Player> {
 
-    private ArrayList<Player> playerList;
+    private List<String> playerList;
+    private DatabaseHandler db;
+    private Server currentServer;
+    private int server_id;
 
-    public PlayerAdapter(Context context, ArrayList<Player> allPlayers, ArrayList<Player> _playerList) {
+    public PlayerAdapter(Context context, ArrayList<Player> allPlayers, int _server_id) {
         super(context, 0, allPlayers);
-        playerList = _playerList;
+        server_id = _server_id;
+        db = new DatabaseHandler(context);
     }
 
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
+        currentServer = db.getServer(server_id);
+        try {
+            String currentPlayers = currentServer.get_currentPlayerNames();
+            String[] reSplit = currentPlayers.split(", ");
+            playerList = Arrays.asList(reSplit);
+        } catch (Exception e) {
+            e.printStackTrace();
+            playerList = new ArrayList<>();
+        }
         Player player = getItem(position);
 
         if (convertView == null) {
@@ -47,7 +67,14 @@ public class PlayerAdapter extends ArrayAdapter<Player> {
             Bitmap resized = Bitmap.createScaledBitmap(player_icon_image, 96, 96, true);
             player_face_view.setImageBitmap(resized);
 
-            if (!playerList.contains(player)) {
+            Boolean playerOnline = false;
+            for (String name : playerList) {
+                if (Objects.equals(player.get_name(), name)) {
+                    playerOnline = true;
+                }
+            }
+
+            if (!playerOnline) {
                 ColorMatrix matrix = new ColorMatrix();
                 matrix.setSaturation(0);
 
