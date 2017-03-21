@@ -37,7 +37,7 @@ public class QueryAllServers extends AsyncTask<List<Server>, Void, List<Server>>
             Query query = new Query(queryAddress, address);
             String[] onlinePlayers = new String[1];
             Map<String, String> values = new HashMap<>();
-            String currentPlayerNames = "Empty";
+            String currentPlayerNames = new String();
 
             // Query the server for usernames and values
             try {
@@ -45,8 +45,7 @@ public class QueryAllServers extends AsyncTask<List<Server>, Void, List<Server>>
                 onlinePlayers = query.getOnlineUsernames();
                 values = query.getValues();
                 if (onlinePlayers.length == 0) {
-                    onlinePlayers = new String[1];
-                    onlinePlayers[0] = "Empty";
+                    onlinePlayers = new String[0];
                 }
             } catch (IOException e) {
                 e.printStackTrace();

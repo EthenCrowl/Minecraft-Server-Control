@@ -56,7 +56,8 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                 Intent intent = new Intent(MainActivity.this, ServerActivity.class);
-                intent.putExtra("SERVER_ID", serverList.get(position).get_id());
+                int server_id = serverList.get(position).get_id();
+                intent.putExtra("SERVER_ID", Integer.toString(server_id));
                 startActivity(intent);
             }
         });
@@ -192,7 +193,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void queryAllServersProcessFinish(List<Server> result) {
         for (Server server : result) {
-            if (server.hasIcon() == false) {
+            if (!server.hasIcon()) {
                 updateServerIcon(server);
             } else {
                 db.updateServer(server);
@@ -209,6 +210,4 @@ public class MainActivity extends AppCompatActivity
             refreshServerList();
         }
     }
-
-
 }

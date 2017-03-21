@@ -17,7 +17,7 @@ import java.util.Map;
 public class QueryServer extends AsyncTask<Server, Void, Server>{
     public QueryServerResponse delegate = null;
 
-    private String currentPlayerNames = "Empty";
+    private String currentPlayerNames = new String();
     private Server output;
 
     protected Server doInBackground(Server... servers) {
@@ -42,8 +42,7 @@ public class QueryServer extends AsyncTask<Server, Void, Server>{
             onlinePlayers = query.getOnlineUsernames();
             values = query.getValues();
             if (onlinePlayers.length == 0) {
-                onlinePlayers = new String[1];
-                onlinePlayers[0] = "Empty";
+                onlinePlayers = new String[0];
             }
         } catch (IOException e) {
             e.printStackTrace();
