@@ -1,6 +1,5 @@
 package net.crowlhome.app.minecraftservercontrol;
 
-import java.util.HashMap;
 
 /**
  * Created by ethen on 3/19/17.
@@ -15,6 +14,7 @@ public class Player {
     private String _name;
     private byte[] _face;
     private String _scoreboard;
+    private int _is_online;
 
     public Player() {
 
@@ -32,12 +32,13 @@ public class Player {
         this._face = face;
     }
 
-    public Player(int server_id, String uuid, String name, byte[] face, String scoreboard) {
+    public Player(int server_id, String uuid, String name, byte[] face, String scoreboard, int is_online) {
         this._server_id = server_id;
         this._uuid = uuid;
         this._name = name;
         this._face = face;
         this._scoreboard = scoreboard;
+        this._is_online = is_online;
     }
 
     public boolean hasFace() {
@@ -86,5 +87,13 @@ public class Player {
 
     public void set_scoreboard(String _scoreboard) {
         this._scoreboard = _scoreboard;
+    }
+
+    public int get_is_online() {
+        return _is_online;
+    }
+
+    public void set_is_online(int _is_online) {
+        this._is_online = _is_online;
     }
 }
