@@ -22,7 +22,12 @@
         </activity>
         <activity android:name=".AddServerActivity">
         </activity>
-        <activity android:name=".ServerActivity">
+        <activity android:name=".ServerActivity_OLD">
+        </activity>
+        <activity
+            android:name=".ServerActivity"
+            android:label="@string/title_activity_server"
+            android:theme="@style/AppTheme.NoActionBar">
         </activity>
     </application>
 

@@ -1,180 +1,164 @@
 package net.crowlhome.app.minecraftservercontrol;
 
-import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.design.widget.TabLayout;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.os.Bundle;
-import android.widget.ListView;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import android.widget.TextView;
 
-public class ServerActivity extends AppCompatActivity implements DownloadPlayerFaceResponse,
-        DownloadPlayerUUIDResponse, QueryServerResponse{
+public class ServerActivity extends AppCompatActivity {
 
-    private int server_id;
-    private DatabaseHandler db;
-    private PlayerAdapter mAdapter;
-    private SwipeRefreshLayout swipeRefreshLayout;
-    private List<Player> playerList = new ArrayList<>();
-    private List<Player> allPlayers;
-    private int getPlayerFaceCount = 0;
-    private int numAllPlayers;
-    private int getGetPlayerFaceCountFinished = 0;
-    private List<String> currentConnectedPlayers;
-    private Server currentServer;
+    /**
+     * The {@link android.support.v4.view.PagerAdapter} that will provide
+     * fragments for each of the sections. We use a
+     * {@link FragmentPagerAdapter} derivative, which will keep every
+     * loaded fragment in memory. If this becomes too memory intensive, it
+     * may be best to switch to a
+     * {@link android.support.v4.app.FragmentStatePagerAdapter}.
+     */
+    private SectionsPagerAdapter mSectionsPagerAdapter;
+
+    /**
+     * The {@link ViewPager} that will host the section contents.
+     */
+    private ViewPager mViewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_server);
-        db = new DatabaseHandler(this);
 
-        getServerInfo();
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        // Create the adapter that will return a fragment for each of the three
+        // primary sections of the activity.
+        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
-        // create a player list if anyone is connected
-        if (currentServer.get_connectedPlayers() > 0) {
-            updateCurrentPlayerList(currentServer);
-        }
+        // Set up the ViewPager with the sections adapter.
+        mViewPager = (ViewPager) findViewById(R.id.container);
+        mViewPager.setAdapter(mSectionsPagerAdapter);
 
-        setCurrentPlayersOnline();
-        numAllPlayers = allPlayers.size();
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(mViewPager);
 
-        for (Player player : allPlayers) {
-            if (!player.hasFace()) {
-                getPlayerFaceCount = getPlayerFaceCount + 1;
-                getPlayerFace(player);
-            }
-        }
-
-        createSwipeRefreshLayout();
-        createPlayerListView();
-    }
-
-    private void setCurrentPlayersOnline() {
-        updateCurrentPlayerList(currentServer);
-        updateAllPlayers();
-        for (Player player : allPlayers) {
-            player.set_is_online(0);
-            String playerName = player.get_name();
-            if (currentConnectedPlayers.contains(playerName)) {
-                player.set_is_online(1);
-            }
-            db.updatePlayer(player);
-        }
-        updateAllPlayers();
-    }
-
-    private void updateAllPlayers() {
-        allPlayers = db.getAllPlayers(server_id);
-    }
-
-    private void getServerIdFromIntent() {
-        String server_id_string = getIntent().getStringExtra("SERVER_ID");
-        server_id = Integer.parseInt(server_id_string);
-    }
-
-    private void getServerInfo() {
-        getServerIdFromIntent();
-        currentServer = db.getServer(server_id);
-        queryTheServer(currentServer);
-    }
-
-    private void createSwipeRefreshLayout() {
-        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.activity_server);
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onRefresh() {
-                queryTheServer(currentServer);
+            public void onClick(View view) {
+                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
             }
         });
+
     }
 
-    private void refreshPlayerListView() {
-        updateAllPlayers();
-        mAdapter.clear();
-        mAdapter.addAll(allPlayers);
-        mAdapter.notifyDataSetChanged();
-        swipeRefreshLayout.setRefreshing(false);
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_server, menu);
+        return true;
     }
 
-    private void createPlayerListView() {
-        mAdapter = new PlayerAdapter(this, (ArrayList<Player>) allPlayers);
-        ListView list = (ListView) findViewById(R.id.player_list_view);
-        list.setAdapter(mAdapter);
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
-    private void updateCurrentPlayerList(Server server) {
-        try {
-            String currentPlayers = server.get_currentPlayerNames();
-            String[] reSplit = currentPlayers.split(", ");
-            currentConnectedPlayers = Arrays.asList(reSplit);
-            updatePlayersInDatabase();
-        } catch (Exception e) {
-            e.printStackTrace();
-            currentConnectedPlayers = new ArrayList<>();
+    /**
+     * A placeholder fragment containing a simple view.
+     */
+    public static class PlaceholderFragment extends Fragment {
+        /**
+         * The fragment argument representing the section number for this
+         * fragment.
+         */
+        private static final String ARG_SECTION_NUMBER = "section_number";
+
+        public PlaceholderFragment() {
+        }
+
+        /**
+         * Returns a new instance of this fragment for the given section
+         * number.
+         */
+        public static PlaceholderFragment newInstance(int sectionNumber) {
+            PlaceholderFragment fragment = new PlaceholderFragment();
+            Bundle args = new Bundle();
+            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
+            fragment.setArguments(args);
+            return fragment;
+        }
+
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                                 Bundle savedInstanceState) {
+            View rootView = inflater.inflate(R.layout.fragment_server, container, false);
+            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
+            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+            return rootView;
         }
     }
 
-    private void updatePlayersInDatabase() {
-        if (currentConnectedPlayers != null) {
-            for (String name : currentConnectedPlayers) {
-                if (!db.checkPlayerExistsByName(server_id, name)) {
-                    Player player = new Player(server_id, name);
-                    playerList.add(player);
-                }
+    /**
+     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
+     * one of the sections/tabs/pages.
+     */
+    public class SectionsPagerAdapter extends FragmentPagerAdapter {
+
+        public SectionsPagerAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            // getItem is called to instantiate the fragment for the given page.
+            // Return a PlaceholderFragment (defined as a static inner class below).
+            return PlaceholderFragment.newInstance(position + 1);
+        }
+
+        @Override
+        public int getCount() {
+            // Show 3 total pages.
+            return 4;
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            switch (position) {
+                case 0:
+                    return "SECTION 1";
+                case 1:
+                    return "SECTION 2";
+                case 2:
+                    return "SECTION 3";
+                case 3:
+                    return "SECTION 4";
             }
-            if (!playerList.isEmpty()) {
-                for (Player player : playerList) {
-                    getUUID(player);
-                }
-            }
+            return null;
         }
-    }
-
-    private void queryTheServer(Server server) {
-        QueryServer queryServer = new QueryServer();
-        queryServer.delegate = this;
-        queryServer.execute(server);
-    }
-
-    private void getPlayerFace(Player player) {
-        DownloadPlayerFace downloadPlayerFace = new DownloadPlayerFace();
-        downloadPlayerFace.delegate = this;
-        downloadPlayerFace.execute(player);
-    }
-
-    private void getUUID(Player player) {
-        DownloadPlayerUUID downloadPlayerUUID = new DownloadPlayerUUID();
-        downloadPlayerUUID.delegate = this;
-        downloadPlayerUUID.execute(player);
-    }
-
-    @Override
-    public void downloadPlayerFaceProcessFinish(Player result) {
-        db.updatePlayer(result);
-        getGetPlayerFaceCountFinished = getGetPlayerFaceCountFinished + 1;
-        if (getGetPlayerFaceCountFinished == getPlayerFaceCount) {
-            refreshPlayerListView();
-            getPlayerFaceCount = 0;
-            getGetPlayerFaceCountFinished = 0;
-        }
-    }
-
-    @Override
-    public void downloadPlayerUUIDProcessFinish(Player result) {
-        db.addPlayer(result);
-    }
-
-    @Override
-    public void queryProcessFinish(Server server) {
-        db.updateServer(server);
-        updateCurrentPlayerList(server);
-        if (mAdapter != null) {
-            setCurrentPlayersOnline();
-            refreshPlayerListView();
-        }
-        currentServer = db.getServer(server_id);
-        swipeRefreshLayout.setRefreshing(false);
     }
 }

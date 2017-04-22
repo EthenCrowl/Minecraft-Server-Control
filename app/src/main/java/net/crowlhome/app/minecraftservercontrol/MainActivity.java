@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -195,13 +196,19 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void queryAllServersProcessFinish(List<Server> result) {
-        for (Server server : result) {
-            if (!server.hasIcon()) {
-                updateServerIcon(server);
-            } else {
-                db.updateServer(server);
-                refreshServerList();
+        if (result.size() > 0) {
+            for (Server server : result) {
+                if (!server.hasIcon()) {
+                    updateServerIcon(server);
+                } else {
+                    db.updateServer(server);
+                    refreshServerList();
+                }
             }
+        } else {
+            // Notify the user of the network problem.
+            Snackbar.make(findViewById(R.id.drawer_layout), "Network Error.", Snackbar.LENGTH_LONG)
+                    .setDuration(4000).show();
         }
         swipeRefreshLayout.setRefreshing(false);
     }

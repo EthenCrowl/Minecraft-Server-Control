@@ -19,11 +19,18 @@ public class QueryAllServers extends AsyncTask<List<Server>, Void, List<Server>>
     public QueryAllServersResponse delegate = null;
 
     private List<Server> output = new ArrayList<Server>();
-    private Server outputServer;
+
 
     protected List<Server> doInBackground(List<Server>... serverList) {
 
         for (Server server : serverList[0]) {
+            // Set the local variables
+            int connectedPlayers = 0;
+            int maxPlayers = 0;
+            String output_MOTD = "";
+            int successful_query = 0;
+            Server outputServer;
+
             // Set the network params
             String serverAddress = server.get_serverAddress();
             int queryPort = server.get_queryPort();
@@ -47,6 +54,7 @@ public class QueryAllServers extends AsyncTask<List<Server>, Void, List<Server>>
                 if (onlinePlayers.length == 0) {
                     onlinePlayers = new String[0];
                 }
+                successful_query = 1;
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -55,9 +63,11 @@ public class QueryAllServers extends AsyncTask<List<Server>, Void, List<Server>>
             if (onlinePlayers.length > 0) {
                 currentPlayerNames = TextUtils.join(", ", onlinePlayers);
             }
-            int connectedPlayers = Integer.parseInt(values.get("numplayers"));
-            int maxPlayers = Integer.parseInt(values.get("maxplayers"));
-            String output_MOTD = values.get("hostname");
+            if (values.size() > 0) {
+                connectedPlayers = Integer.parseInt(values.get("numplayers"));
+                maxPlayers = Integer.parseInt(values.get("maxplayers"));
+                output_MOTD = values.get("hostname");
+            }
 
             // Get the values for the output object
             int output_id = server.get_id();
@@ -70,12 +80,13 @@ public class QueryAllServers extends AsyncTask<List<Server>, Void, List<Server>>
             byte[] output_icon = server.get_serverIcon();
 
             // Create the output server object with the new values
-            Server outputServer = new Server(output_id, output_name, output_address, output_server_port,
-                    output_query_port, output_rcon_port, output_rcon_pass, connectedPlayers, maxPlayers,
-                    currentPlayerNames, output_MOTD, output_icon);
+            if (successful_query == 1) {
+                outputServer = new Server(output_id, output_name, output_address, output_server_port,
+                        output_query_port, output_rcon_port, output_rcon_pass, connectedPlayers, maxPlayers,
+                        currentPlayerNames, output_MOTD, output_icon);
 
-
-            output.add(outputServer);
+                output.add(outputServer);
+            }
         }
         return null;
     }
