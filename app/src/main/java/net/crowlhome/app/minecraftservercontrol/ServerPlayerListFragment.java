@@ -1,108 +1,96 @@
 package net.crowlhome.app.minecraftservercontrol;
 
-import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link ServerPlayerListFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link ServerPlayerListFragment#newInstance} factory method to
- * create an instance of this fragment.
+ * Created by ethen on 4/30/17.
+ * Copyright Ethen Crowl
  */
-public class ServerPlayerListFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+public class ServerPlayerListFragment extends Fragment{
+    /*
+    This fragment should load the list of previously connected players from the database.
+    Upon loading the fragment, unpack the server id and convert it into a usable value.
+    Then, retrieve the server object from the database with the server id.
+    Then, create a list of currently connected player names from the server object.
+    Then, create a list of previously connected players from the database.
+    Then, compare the two lists for any new players.
+    If any new players are found.
+        Then, retrieve all information for the new players.
+        Then, save all new players to the database.
+        Clean up variables.
+        Pull a new list of all previously connected players from the database in place of the old list.
+    Compare that list with the name list from the server object to determine if the players are online.
+    Then, pass the completed list to the player adapter.
 
-    private OnFragmentInteractionListener mListener;
-
-    public ServerPlayerListFragment() {
-        // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment ServerPlayerListFragment.
      */
-    // TODO: Rename and change types and number of parameters
-    public static ServerPlayerListFragment newInstance(String param1, String param2) {
-        ServerPlayerListFragment fragment = new ServerPlayerListFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
+
+    private int server_id;
+    private DatabaseHandler db;
+    private Server currentServer;
+    String[] playerNameArray;
+    List<Player> previouslyConnectedPlayerObjects;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(LayoutInflater inflater,
+                             ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_server_player_list, container, false);
+        server_id = getArguments().getInt("SERVER_ID");
+        db = new DatabaseHandler(getActivity());
+        getServerObject(server_id);
+
+
+        return inflater.inflate(R.layout.fragment_player_server_list,
+                container, false);
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
+    private void getServerObject(int server_id) {
+        currentServer = db.getServer(server_id);
+    }
+
+    private void createPlayerNameList() {
+        String rawPlayerNameList = currentServer.get_currentPlayerNames();
+        playerNameArray = rawPlayerNameList.split(",");
+    }
+
+    private void getPreviousPlayerObjects(int server_id) {
+        previouslyConnectedPlayerObjects = db.getAllPlayers(server_id);
+    }
+
+    private void checkForNewPlayers(String[] currentPlayerNames,
+                                    List<Player> previousPlayerObjects) {
+        List<String> playersToAdd = new ArrayList<>();
+
+        for (String playerName : currentPlayerNames) {
+            boolean exists = false;
+
+            for (Player player : previousPlayerObjects) {
+                if (playerName.equals(player.get_name())) {
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists) {
+                playersToAdd.add(playerName);
+            }
+
+        }
+
+        if (playersToAdd.size() > 0) {
+            // Call the method to download player info.
         }
     }
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
+    private void downloadPlayerInformation(List<String> playerNameList) {
+
     }
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
-    }
 }
