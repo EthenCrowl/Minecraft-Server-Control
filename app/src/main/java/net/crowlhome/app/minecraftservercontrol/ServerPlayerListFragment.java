@@ -16,6 +16,7 @@ import java.util.List;
  */
 
 public class ServerPlayerListFragment extends Fragment{
+    
     /*
     This fragment should load the list of previously connected players from the database.
     Upon loading the fragment, unpack the server id and convert it into a usable value.
