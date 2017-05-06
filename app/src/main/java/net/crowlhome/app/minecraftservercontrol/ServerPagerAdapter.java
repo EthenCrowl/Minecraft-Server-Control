@@ -30,6 +30,13 @@ public class ServerPagerAdapter extends FragmentStatePagerAdapter {
                 ServerPlayerListFragment player_list_fragment = new ServerPlayerListFragment();
                 player_list_fragment.setArguments(bundle);
                 return player_list_fragment;
+            case 1:
+                Bundle bundle1 = new Bundle();
+                bundle1.putInt("SERVER_ID", mServer_id);
+                ServerCommandButtonsFragment command_buttons_fragment = new
+                        ServerCommandButtonsFragment();
+                command_buttons_fragment.setArguments(bundle1);
+                return command_buttons_fragment;
         }
         Bundle bundle = new Bundle();
         bundle.putInt("SERVER_ID", mServer_id);
