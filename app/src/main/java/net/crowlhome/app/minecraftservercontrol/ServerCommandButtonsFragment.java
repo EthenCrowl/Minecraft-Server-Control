@@ -1,6 +1,7 @@
 package net.crowlhome.app.minecraftservercontrol;
 
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -76,6 +77,9 @@ public class ServerCommandButtonsFragment extends Fragment implements SendComman
 
     @Override
     public void sendCommandProcessFinish(String result) {
-
+        Snackbar.make(getView().findViewById(
+                R.id.server_buttons_root),
+                result,
+                Snackbar.LENGTH_LONG).show();
     }
 }

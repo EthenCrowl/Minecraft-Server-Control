@@ -32,8 +32,10 @@ public class SendCommand extends AsyncTask<List<Command>, Void, String>{
                     }
                 } catch (IOException io) {
                     io.printStackTrace();
+                    result = "Error Reaching Server";
                 } catch (AuthenticationException auth) {
                     auth.printStackTrace();
+                    result = "Authentication Error";
                 }
             }
         }
