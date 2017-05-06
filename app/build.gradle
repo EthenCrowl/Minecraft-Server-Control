@@ -31,4 +31,5 @@ dependencies {
     compile 'com.android.support:design:25.1.1'
     compile 'com.android.support:support-v4:25.3.0'
     testCompile 'junit:junit:4.12'
+    compile files('libs/rkon-core-1.1.1.jar')
 }
