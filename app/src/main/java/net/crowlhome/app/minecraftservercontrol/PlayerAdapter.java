@@ -50,6 +50,13 @@ public class PlayerAdapter extends ArrayAdapter<Player> {
                 ColorMatrixColorFilter filter = new ColorMatrixColorFilter(matrix);
                 player_face_view.setColorFilter(filter);
             }
+
+            if (player.get_is_online() == 1) {
+                ColorMatrix matrix = new ColorMatrix();
+
+                ColorMatrixColorFilter filter = new ColorMatrixColorFilter(matrix);
+                player_face_view.setColorFilter(filter);
+            }
         }
 
 

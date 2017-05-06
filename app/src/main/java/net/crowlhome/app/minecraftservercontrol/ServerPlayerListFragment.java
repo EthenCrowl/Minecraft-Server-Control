@@ -1,11 +1,12 @@
 package net.crowlhome.app.minecraftservercontrol;
 
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,8 +16,8 @@ import java.util.List;
  * Copyright Ethen Crowl
  */
 
-public class ServerPlayerListFragment extends Fragment{
-    
+public class ServerPlayerListFragment extends Fragment
+        implements DownloadPlayerUUIDResponse, DownloadPlayerFaceResponse, QueryServerResponse {
     /*
     This fragment should load the list of previously connected players from the database.
     Upon loading the fragment, unpack the server id and convert it into a usable value.
@@ -37,20 +38,75 @@ public class ServerPlayerListFragment extends Fragment{
     private int server_id;
     private DatabaseHandler db;
     private Server currentServer;
-    String[] playerNameArray;
-    List<Player> previouslyConnectedPlayerObjects;
+    private String[] playerNameArray;
+    private List<Player> previouslyConnectedPlayerObjects;
+    private int numPlayersToDownload;
+    private int numPlayersDownloaded;
+    private PlayerAdapter mPlayerAdapter;
+    private ListView list;
+    private SwipeRefreshLayout swipeRefreshLayout;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        server_id = getArguments().getInt("SERVER_ID");
+        db = new DatabaseHandler(getActivity());
+        getServerObject(server_id);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container,
                              Bundle savedInstanceState) {
-        server_id = getArguments().getInt("SERVER_ID");
-        db = new DatabaseHandler(getActivity());
-        getServerObject(server_id);
-
-
         return inflater.inflate(R.layout.fragment_player_server_list,
                 container, false);
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.player_list_swipe_refresh_layout);
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                queryServer();
+            }
+        });
+
+        initialSetup();
+    }
+
+    private void initialSetup() {
+        createPlayerNameList();
+        getPreviousPlayerObjects(server_id);
+        if (previouslyConnectedPlayerObjects.size() > 0) {
+            if (!allPlayerObjectsGood()) {
+                List<String> nameList = new ArrayList<>();
+                for (Player player : previouslyConnectedPlayerObjects) {
+                    nameList.add(player.get_name());
+                }
+                downloadPlayerInformation(nameList);
+            }
+        }
+        checkForNewPlayers(playerNameArray, previouslyConnectedPlayerObjects);
+        createPlayerListView();
+    }
+
+    private void refreshEverything() {
+        createPlayerNameList();
+        getPreviousPlayerObjects(server_id);
+        if (previouslyConnectedPlayerObjects.size() > 0) {
+            if (!allPlayerObjectsGood()) {
+                List<String> nameList = new ArrayList<>();
+                for (Player player : previouslyConnectedPlayerObjects) {
+                    nameList.add(player.get_name());
+                }
+                downloadPlayerInformation(nameList);
+            }
+        }
+        checkForNewPlayers(playerNameArray, previouslyConnectedPlayerObjects);
+        refreshPlayerListView();
+        swipeRefreshLayout.setRefreshing(false);
     }
 
     private void getServerObject(int server_id) {
@@ -59,7 +115,7 @@ public class ServerPlayerListFragment extends Fragment{
 
     private void createPlayerNameList() {
         String rawPlayerNameList = currentServer.get_currentPlayerNames();
-        playerNameArray = rawPlayerNameList.split(",");
+        playerNameArray = rawPlayerNameList.split(", ");
     }
 
     private void getPreviousPlayerObjects(int server_id) {
@@ -70,28 +126,116 @@ public class ServerPlayerListFragment extends Fragment{
                                     List<Player> previousPlayerObjects) {
         List<String> playersToAdd = new ArrayList<>();
 
-        for (String playerName : currentPlayerNames) {
-            boolean exists = false;
+        if (currentPlayerNames.length > 0 && !currentPlayerNames[0].equals("")) {
+            for (String playerName : currentPlayerNames) {
+                boolean exists = false;
 
-            for (Player player : previousPlayerObjects) {
-                if (playerName.equals(player.get_name())) {
-                    exists = true;
-                    break;
+                for (Player player : previousPlayerObjects) {
+                    if (playerName.equals(player.get_name())) {
+                        exists = true;
+                        break;
+                    }
                 }
-            }
-            if (!exists) {
-                playersToAdd.add(playerName);
-            }
+                if (!exists) {
+                    playersToAdd.add(playerName);
+                }
 
+            }
         }
 
         if (playersToAdd.size() > 0) {
-            // Call the method to download player info.
+            downloadPlayerInformation(playersToAdd);
+        } else {
+            checkIfOnline();
         }
     }
 
     private void downloadPlayerInformation(List<String> playerNameList) {
+        for (String playerName : playerNameList) {
+            numPlayersToDownload = numPlayersToDownload + 1;
+            Player player = new Player(server_id, playerName);
+            DownloadPlayerUUID downloadPlayerUUID = new DownloadPlayerUUID();
+            downloadPlayerUUID.delegate = this;
+            downloadPlayerUUID.execute(player);
+        }
+    }
 
+    private void checkIfOnline() {
+        for (Player player : previouslyConnectedPlayerObjects) {
+            player.set_is_online(0);
+            if (playerNameArray.length > 0 && !playerNameArray[0].equals("")) {
+                for (String name : playerNameArray) {
+                    if (name.equals(player.get_name())) {
+                        player.set_is_online(1);
+                        db.updatePlayer(player);
+                        break;
+                    }
+                }
+                db.updatePlayer(player);
+            } else {
+                db.updatePlayer(player);
+            }
+        }
+        getPreviousPlayerObjects(server_id);
+    }
+
+    private void createPlayerListView() {
+        mPlayerAdapter = new PlayerAdapter(getActivity(), (ArrayList<Player>)
+                previouslyConnectedPlayerObjects);
+        list = (ListView) getView().findViewById(R.id.player_list_view);
+        list.setAdapter(mPlayerAdapter);
+    }
+
+    private void refreshPlayerListView() {
+        getPreviousPlayerObjects(server_id);
+        mPlayerAdapter.clear();
+        mPlayerAdapter.addAll(previouslyConnectedPlayerObjects);
+        mPlayerAdapter.notifyDataSetChanged();
+    }
+
+    private void queryServer() {
+        QueryServer queryServer = new QueryServer();
+        queryServer.delegate = this;
+        queryServer.execute(currentServer);
+    }
+
+    private boolean allPlayerObjectsGood() {
+        for (Player player : previouslyConnectedPlayerObjects) {
+            if (player.get_uuid() == null) {
+                return false;
+            }
+            if (!player.hasFace()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public void downloadPlayerUUIDProcessFinish(Player result) {
+        DownloadPlayerFace downloadPlayerFace = new DownloadPlayerFace();
+        downloadPlayerFace.delegate = this;
+        downloadPlayerFace.execute(result);
+    }
+
+    @Override
+    public void downloadPlayerFaceProcessFinish(Player result) {
+        numPlayersDownloaded = numPlayersDownloaded + 1;
+        db.addPlayer(result);
+        if (numPlayersDownloaded == numPlayersToDownload) {
+            numPlayersDownloaded = 0;
+            numPlayersToDownload = 0;
+            getPreviousPlayerObjects(server_id);
+            createPlayerNameList();
+            checkIfOnline();
+        }
+    }
+
+    @Override
+    public void queryProcessFinish(Server output) {
+        db.updateServer(output);
+        currentServer = db.getServer(server_id);
+        refreshEverything();
     }
 
 }

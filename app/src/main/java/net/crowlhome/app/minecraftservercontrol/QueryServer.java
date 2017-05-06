@@ -74,6 +74,7 @@ public class QueryServer extends AsyncTask<Server, Void, Server>{
         output = servers[0];
         output.set_connectedPlayers(connectedPlayers);
         output.set_maxPlayers(maxPlayers);
+        output.set_currentPlayerNames(currentPlayerNames);
         output.set_serverMOTD(output_MOTD);
 
 
