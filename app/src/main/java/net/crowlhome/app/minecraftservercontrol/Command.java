@@ -11,16 +11,19 @@ public class Command {
     private String mServerAddress;
     private int mRconPort;
     private String mPassword;
+    private int mMode;
+    private String mOutput;
 
     public Command() {
         // Required empty constructor
     }
 
-    public Command(String command, String serverAddress, int port, String password) {
+    public Command(String command, String serverAddress, int port, String password, int mode) {
         this.mCommand = command;
         this.mServerAddress = serverAddress;
         this.mPassword = password;
         this.mRconPort = port;
+        this.mMode = mode;
     }
 
     public String getCommand() {
@@ -53,5 +56,21 @@ public class Command {
 
     public void setRconPort(int rconPort) {
         mRconPort = rconPort;
+    }
+
+    public int getMode() {
+        return mMode;
+    }
+
+    public void setMode(int mode) {
+        mMode = mode;
+    }
+
+    public String getOutput() {
+        return mOutput;
+    }
+
+    public void setOutput(String output) {
+        mOutput = output;
     }
 }

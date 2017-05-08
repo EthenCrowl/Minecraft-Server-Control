@@ -6,7 +6,6 @@ import net.kronos.rkon.core.Rcon;
 import net.kronos.rkon.core.ex.AuthenticationException;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -14,35 +13,35 @@ import java.util.List;
  * Copyright Ethen Crowl
  */
 
-public class SendCommand extends AsyncTask<List<Command>, Void, String>{
-    public SendCommandResponse delegate = null;
+class SendCommand extends AsyncTask<List<Command>, Void, Command>{
+    SendCommandResponse delegate = null;
 
     private String result;
+    private Command output;
 
-    protected String doInBackground(List<Command>... commandList) {
-        for (Command command : commandList[0]) {
-            if (command.getCommand() != null & command.getPassword() != null &
-                    command.getServerAddress() != null) {
+    protected Command doInBackground(List<Command>... commandList) {
+        for (Command payload : commandList[0]) {
+            if (payload.getCommand() != null & payload.getPassword() != null &
+                    payload.getServerAddress() != null) {
+                output = payload;
                 try {
-                    Rcon rcon = new Rcon(command.getServerAddress(), command.getRconPort(),
-                            command.getPassword().getBytes());
-
-                    if (rcon != null) {
-                        result = rcon.command(command.getCommand());
-                    }
+                    Rcon rcon = new Rcon(output.getServerAddress(), output.getRconPort(),
+                            output.getPassword().getBytes());
+                    result = rcon.command(output.getCommand());
+                    output.setOutput(result);
                 } catch (IOException io) {
                     io.printStackTrace();
-                    result = "Error Reaching Server";
+                    output.setOutput("Error Reaching Server");
                 } catch (AuthenticationException auth) {
                     auth.printStackTrace();
-                    result = "Authentication Error";
+                    output.setOutput("Authentication Error");
                 }
             }
         }
         return null;
     }
 
-    protected void onPostExecute(String output) {
-        delegate.sendCommandProcessFinish(result);
+    protected void onPostExecute(Command command) {
+        delegate.sendCommandProcessFinish(output);
     }
 }

@@ -26,8 +26,8 @@ public class ServerActivity extends AppCompatActivity {
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
         tabLayout.addTab(tabLayout.newTab().setText("Players"));
-        tabLayout.addTab(tabLayout.newTab().setText("Options"));
-        tabLayout.addTab(tabLayout.newTab().setText("Commands"));
+        tabLayout.addTab(tabLayout.newTab().setText("World"));
+        tabLayout.addTab(tabLayout.newTab().setText("Rcon"));
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
 
         final ViewPager viewPager = (ViewPager) findViewById(R.id.pager);

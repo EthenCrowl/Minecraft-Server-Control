@@ -6,5 +6,5 @@ package net.crowlhome.app.minecraftservercontrol;
  */
 
 public interface SendCommandResponse {
-    void sendCommandProcessFinish(String result);
+    void sendCommandProcessFinish(Command result);
 }
