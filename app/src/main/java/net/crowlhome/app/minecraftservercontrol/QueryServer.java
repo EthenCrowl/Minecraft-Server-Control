@@ -5,7 +5,6 @@ import android.text.TextUtils;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.sql.Blob;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,7 +55,7 @@ public class QueryServer extends AsyncTask<Server, Void, Server>{
         int maxPlayers = Integer.parseInt(values.get("maxplayers"));
         String output_MOTD = values.get("hostname");
 
-        // Get the values for the output object
+        /* Get the values for the output object
         int output_id = servers[0].get_id();
         String output_name = servers[0].get_serverName();
         String output_address = servers[0].get_serverAddress();
@@ -70,6 +69,13 @@ public class QueryServer extends AsyncTask<Server, Void, Server>{
         output = new Server(output_id, output_name, output_address, output_server_port,
                 output_query_port, output_rcon_port, output_rcon_pass, connectedPlayers, maxPlayers,
                 currentPlayerNames, output_MOTD, output_icon);
+        */
+
+        output = servers[0];
+        output.set_connectedPlayers(connectedPlayers);
+        output.set_maxPlayers(maxPlayers);
+        output.set_currentPlayerNames(currentPlayerNames);
+        output.set_serverMOTD(output_MOTD);
 
 
         return null;

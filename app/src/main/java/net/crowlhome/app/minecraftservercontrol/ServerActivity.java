@@ -1,144 +1,71 @@
 package net.crowlhome.app.minecraftservercontrol;
 
-import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.design.widget.TabLayout;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.widget.ListView;
+import android.support.v7.widget.LinearLayoutCompat;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-public class ServerActivity extends AppCompatActivity implements DownloadPlayerFaceResponse,
-        DownloadPlayerUUIDResponse, QueryServerResponse{
+public class ServerActivity extends AppCompatActivity {
 
     private int server_id;
-    private DatabaseHandler db;
-    private PlayerAdapter mAdapter;
-    private DownloadPlayerUUID downloadPlayerUUID;
-    private DownloadPlayerFace downloadPlayerFace;
-    private QueryServer queryServer;
-    private SwipeRefreshLayout swipeRefreshLayout;
-    private ListView list;
-    private List<Player> playerList = new ArrayList<Player>();
-    private List<Player> allPlayers;
-    private List<String> currentConnectedPlayers;
-    private Server currentServer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_server);
-
-        db = new DatabaseHandler(this);
         String server_id_string = getIntent().getStringExtra("SERVER_ID");
         server_id = Integer.parseInt(server_id_string);
-        currentServer = db.getServer(server_id);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.server_toolbar);
+        setSupportActionBar(toolbar);
 
-        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.activity_server);
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
+        tabLayout.addTab(tabLayout.newTab().setText("Players"));
+        tabLayout.addTab(tabLayout.newTab().setText("World"));
+        tabLayout.addTab(tabLayout.newTab().setText("Rcon"));
+        tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
+
+        final ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
+        final ServerPagerAdapter adapter = new ServerPagerAdapter
+                (getSupportFragmentManager(), tabLayout.getTabCount(), server_id);
+        viewPager.setAdapter(adapter);
+        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
-            public void onRefresh() {
-                getNewCurrentPlayers(currentServer);
-                refreshPlayerListView();
+            public void onTabSelected(TabLayout.Tab tab) {
+                viewPager.setCurrentItem(tab.getPosition());
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
             }
         });
-
-
-        if (currentServer.get_connectedPlayers() > 0) {
-            updateCurrentPlayerList();
-            updatePlayersInDatabase();
-        }
-
-        allPlayers = db.getAllPlayers(server_id);
-
-        for (Player player : allPlayers) {
-            if (!player.hasFace()) {
-                getPlayerFace(player);
-            }
-        }
-
-        allPlayers = db.getAllPlayers(server_id);
-
-        if (allPlayers != null) {
-            createPlayerListView();
-        }
-
-
-
-
-    }
-
-    private void refreshPlayerListView() {
-        allPlayers = db.getAllPlayers(server_id);
-        mAdapter.clear();
-        mAdapter.addAll(allPlayers);
-        mAdapter.notifyDataSetChanged();
-    }
-
-    private void createPlayerListView() {
-        mAdapter = new PlayerAdapter(this, (ArrayList<Player>) allPlayers, server_id);
-        list = (ListView) findViewById(R.id.player_list_view);
-        list.setAdapter(mAdapter);
-    }
-
-    private void updateCurrentPlayerList() {
-        try {
-            String currentPlayers = currentServer.get_currentPlayerNames();
-            String[] reSplit = currentPlayers.split(", ");
-            currentConnectedPlayers = Arrays.asList(reSplit);
-        } catch (Exception e) {
-            e.printStackTrace();
-            currentConnectedPlayers = new ArrayList<>();
-        }
-    }
-
-    private void updatePlayersInDatabase() {
-        if (currentConnectedPlayers != null) {
-            for (String name : currentConnectedPlayers) {
-                Player player = new Player(server_id, name);
-                playerList.add(player);
-            }
-            for (Player player : playerList) {
-                getUUID(player);
-            }
-        }
-    }
-
-    private void getNewCurrentPlayers(Server server) {
-        queryServer = new QueryServer();
-        queryServer.delegate = this;
-        queryServer.execute(server);
-    }
-
-    private void getPlayerFace(Player player) {
-        downloadPlayerFace = new DownloadPlayerFace();
-        downloadPlayerFace.delegate = this;
-        downloadPlayerFace.execute(player);
-    }
-
-    private void getUUID(Player player) {
-        downloadPlayerUUID = new DownloadPlayerUUID();
-        downloadPlayerUUID.delegate = this;
-        downloadPlayerUUID.execute(player);
     }
 
     @Override
-    public void downloadPlayerFaceProcessFinish(Player result) {
-        db.updatePlayer(result);
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_server, menu);
+        return true;
     }
 
     @Override
-    public void downloadPlayerUUIDProcessFinish(Player result) {
-        db.addPlayer(result);
-    }
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_settings) {
+            return true;
+        }
 
-    @Override
-    public void queryProcessFinish(Server server) {
-        db.updateServer(server);
-        currentServer = db.getServer(server_id);
-        updateCurrentPlayerList();
-        swipeRefreshLayout.setRefreshing(false);
+        return super.onOptionsItemSelected(item);
     }
 }

@@ -3,9 +3,6 @@ package net.crowlhome.app.minecraftservercontrol;
 import android.os.AsyncTask;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
-
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -48,8 +45,8 @@ public class DownloadPlayerUUID extends AsyncTask<Player, Void, Player> {
                     jsonReader = new JsonReader(inputStreamReader);
                     jsonReader.beginObject();
                     while (jsonReader.hasNext()) {
-                        final String valueName = jsonReader.nextName();
-                        final Boolean isValueNameNull = jsonReader.peek() == JsonToken.NULL;
+                        String valueName = jsonReader.nextName();
+                        Boolean isValueNameNull = jsonReader.peek() == JsonToken.NULL;
                         if (valueName.equals("id") && !isValueNameNull) {
                             uuid = jsonReader.nextString();
                             output.set_uuid(uuid);

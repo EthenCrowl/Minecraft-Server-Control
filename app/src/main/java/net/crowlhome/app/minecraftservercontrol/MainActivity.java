@@ -2,8 +2,10 @@ package net.crowlhome.app.minecraftservercontrol;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -55,6 +57,7 @@ public class MainActivity extends AppCompatActivity
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+
                 Intent intent = new Intent(MainActivity.this, ServerActivity.class);
                 int server_id = serverList.get(position).get_id();
                 intent.putExtra("SERVER_ID", Integer.toString(server_id));
@@ -65,6 +68,7 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        //noinspection deprecation
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
@@ -137,7 +141,7 @@ public class MainActivity extends AppCompatActivity
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
@@ -192,13 +196,19 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void queryAllServersProcessFinish(List<Server> result) {
-        for (Server server : result) {
-            if (!server.hasIcon()) {
-                updateServerIcon(server);
-            } else {
-                db.updateServer(server);
-                refreshServerList();
+        if (result.size() > 0) {
+            for (Server server : result) {
+                if (!server.hasIcon()) {
+                    updateServerIcon(server);
+                } else {
+                    db.updateServer(server);
+                    refreshServerList();
+                }
             }
+        } else {
+            // Notify the user of the network problem.
+            Snackbar.make(findViewById(R.id.drawer_layout), "Network Error.", Snackbar.LENGTH_LONG)
+                    .setDuration(4000).show();
         }
         swipeRefreshLayout.setRefreshing(false);
     }
